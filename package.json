@@ -1,0 +1,23 @@
+{
+  "name": "cron-worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --test-scheduled",
+    "start": "wrangler dev --test-scheduled",
+    "cf-typegen": "wrangler types",
+    "alpaca": "tsx --env-file=.env src/alpaca.ts",
+    "fmp": "tsx --env-file=.env src/fmp.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13",
+    "tsx": "^4.20.3",
+    "typescript": "^5.5.2",
+    "wrangler": "^4.23.0"
+  },
+  "dependencies": {
+    "@alpacahq/alpaca-trade-api": "^3.1.3",
+    "trading-signals": "^6.8.0"
+  }
+}
