@@ -16,6 +16,10 @@
       "0 20 * * MON-FRI" // Runs at 20:00 UTC on weekdays
     ]
   },
+  "env": {
+    "dev": {},
+    "prod": {}
+  }
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
