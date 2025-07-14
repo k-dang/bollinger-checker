@@ -25,7 +25,7 @@ export default {
     return new Response(`To test the scheduled handler, ensure you have used the "--test-scheduled" then try running "curl ${url.href}".`);
   },
 
-  async scheduled(event, env, ctx): Promise<void> {
+  async scheduled(event, env): Promise<void> {
     const tickerSymbols = ['AAPL', 'TSLA'];
 
     const fields = tickerSymbols
@@ -44,7 +44,7 @@ export default {
       },
       body: JSON.stringify(getDiscordWebhookBody(fields)),
     });
-    let wasSuccessful = resp.ok ? 'success' : 'fail';
+    const wasSuccessful = resp.ok ? 'success' : 'fail';
 
     // You could store this result in KV, write to a D1 Database, or publish to a Queue.
     console.log(`trigger fired at ${event.cron}: ${wasSuccessful}`);

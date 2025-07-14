@@ -7,13 +7,17 @@
     "dev": "wrangler dev --test-scheduled",
     "start": "wrangler dev --test-scheduled",
     "cf-typegen": "wrangler types",
+    "lint": "eslint src",
     "alpaca": "tsx --env-file=.env src/alpaca.ts",
     "fmp": "tsx --env-file=.env src/fmp.ts"
   },
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
     "@types/node": "^24.0.13",
+    "eslint": "^9.31.0",
     "tsx": "^4.20.3",
     "typescript": "^5.5.2",
+    "typescript-eslint": "^8.37.0",
     "wrangler": "^4.23.0"
   },
   "dependencies": {
