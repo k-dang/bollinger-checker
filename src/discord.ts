@@ -1,7 +1,7 @@
-type fields = {
+interface fields {
   name: string;
   value: string;
-};
+}
 
 export const getDiscordWebhookBody = (fields: fields[]) => {
   return {

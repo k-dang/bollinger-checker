@@ -7,7 +7,7 @@ import { getBars } from './alpaca';
  * @param upperBandPrice - The upper Bollinger Band price.
  * @param thresholdPercent - The percentage threshold (default: 1 for 1%).
  */
-export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thresholdPercent: number = 1): boolean => {
+export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thresholdPercent = 1): boolean => {
   const threshold = price * (1 + thresholdPercent / 100);
   return threshold >= upperBandPrice;
 };
@@ -18,7 +18,7 @@ export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thr
  * @param lowerBandPrice - The lower Bollinger Band price.
  * @param thresholdPercent - The percentage threshold (default: 1 for 1%).
  */
-export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thresholdPercent: number = 1): boolean => {
+export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thresholdPercent = 1): boolean => {
   const threshold = price * (1 - thresholdPercent / 100);
   return threshold <= lowerBandPrice;
 };
