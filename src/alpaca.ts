@@ -1,4 +1,5 @@
 export interface Bar {
+  Timestamp: string; // ISO 8601 format
   ClosePrice: number;
   Symbol: string;
 }
@@ -72,6 +73,7 @@ export class AlpacaClient {
       result.set(
         symbol,
         bars.map((bar) => ({
+          Timestamp: bar.t,
           ClosePrice: bar.c,
           Symbol: symbol,
         }))

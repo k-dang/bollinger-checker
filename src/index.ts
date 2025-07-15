@@ -31,11 +31,11 @@ export default {
     const tickerSymbols = ['AAPL', 'TSLA'];
 
     const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
-    const bars = await alpacaClient.getBars(tickerSymbols);
-    const latestPrices = await alpacaClient.getLatestPrices(tickerSymbols);
+    const task1 = await alpacaClient.getBars(tickerSymbols);
+    const task2 = await alpacaClient.getLatestPrices(tickerSymbols);
 
     // Wait for both promises to resolve
-    // const [bars, latestPrices] = await Promise.all([task1, task2]);
+    const [bars, latestPrices] = await Promise.all([task1, task2]);
 
     const results = await checkBollingerBands(bars, latestPrices);
 
