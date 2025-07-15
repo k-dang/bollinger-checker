@@ -15,6 +15,8 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+import { AlpacaClient } from './alpaca';
+import { checkBollingerBands } from './bollingerChecker';
 import { getDiscordWebhookBody } from './discord';
 
 export default {
@@ -28,14 +30,21 @@ export default {
   async scheduled(event, env): Promise<void> {
     const tickerSymbols = ['AAPL', 'TSLA'];
 
-    const fields = tickerSymbols
-      .map((ticker) => {
-        return {
-          name: ticker,
-          value: `Bollinger Band Alert for ${ticker}`,
-        };
-      })
-      .slice(0, 10);
+    const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
+    const bars = await alpacaClient.getBars(tickerSymbols);
+    const latestPrices = await alpacaClient.getLatestPrices(tickerSymbols);
+
+    // Wait for both promises to resolve
+    // const [bars, latestPrices] = await Promise.all([task1, task2]);
+
+    const results = await checkBollingerBands(bars, latestPrices);
+
+    const fields = results.map((result) => {
+      return {
+        name: 'Alert',
+        value: result,
+      };
+    });
 
     const resp = await fetch(env.DISCORD_WEBHOOK_URL, {
       method: 'POST',

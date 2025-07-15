@@ -1,5 +1,5 @@
 import { BollingerBands } from 'trading-signals';
-import { getBars } from './alpaca';
+import { Bar } from './alpaca';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
@@ -24,13 +24,12 @@ export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thr
 };
 
 interface BollingerBandResult {
-  upper: string;
-  middle: string;
-  lower: string;
+  upper: number;
+  middle: number;
+  lower: number;
 }
 
-export const getBollingerBands = async (symbols: string[]): Promise<Record<string, BollingerBandResult>> => {
-  const bars = await getBars(symbols);
+export const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Record<string, BollingerBandResult>> => {
   const results: Record<string, BollingerBandResult> = {};
 
   for (const [symbol, value] of bars.entries()) {
@@ -44,10 +43,40 @@ export const getBollingerBands = async (symbols: string[]): Promise<Record<strin
     // We have more data points than the required period, so it should be stable.
     const { middle, upper, lower } = bb.getResultOrThrow();
     results[symbol] = {
-      upper: upper.toPrecision(12),
-      middle: middle.toPrecision(12),
-      lower: lower.toPrecision(12),
+      upper: upper.toNumber(),
+      middle: middle.toNumber(),
+      lower: lower.toNumber(),
     };
+  }
+
+  return results;
+};
+
+export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices: Record<string, number>) => {
+  const bands = await getBollingerBands(bars);
+
+  const results = [];
+  for (const symbol of bars.keys()) {
+    const latestPrice = latestPrices[symbol];
+    const { upper, lower } = bands[symbol];
+    results.push(`Alert: ${symbol}: ${latestPrice} Upper: ${upper}, Lower: ${lower}`);
+
+    if (isNearOrPastUpperBand(latestPrice, upper)) {
+      // TODO get top 10 option chain
+      // Sell Calls
+      // Passed Upper band or within 1%
+      // return a list of options?
+      console.log(`Alert: ${symbol} is near or past the upper Bollinger Band at ${latestPrice}`);
+    } else if (isNearOrPastLowerBand(latestPrice, lower)) {
+      // TODO get top 10 option chain
+      // Sell Puts
+      // Passed Lower band or within 1%
+      // return a list of options?
+      console.log(`Alert: ${symbol} is near or past the lower Bollinger Band at ${latestPrice}`);
+    }
+
+    // add finished log
+    console.log(`[BollingerChecker][date(${new Date().toISOString()})]: finished checking ${symbol}`);
   }
 
   return results;

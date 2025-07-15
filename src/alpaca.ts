@@ -1,27 +1,109 @@
-import Alpaca from '@alpacahq/alpaca-trade-api';
+export interface Bar {
+  ClosePrice: number;
+  Symbol: string;
+}
 
-const alpaca = new Alpaca({
-  keyId: process.env.ALPACA_API_KEY,
-  secretKey: process.env.ALPACA_API_SECRET,
-});
+interface AlpacaBarResponse {
+  bars: Record<
+    string,
+    {
+      c: number; // close price
+      h: number; // high price
+      l: number; // low price
+      o: number; // open price
+      t: string; // timestamp
+      v: number; // volume
+    }[]
+  >;
+}
 
-const options = {
-  start: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), // 35 days ago
-  timeframe: alpaca.newTimeframe(1, alpaca.timeframeUnit.DAY),
-};
-
-export const getBars = async (symbols: string[]) => {
-  return alpaca.getMultiBarsV2(symbols, options);
-};
-
-export const getLatestPrices = async (symbols: string[]) => {
-  const quotes = await alpaca.getSnapshots(symbols);
-  return quotes.map((snapshot, index) => {
-    return {
-      symbol: symbols[index],
-      latestPrice: snapshot.LatestTrade.Price,
+type AlpacaSnapshotResponse = Record<
+  string,
+  {
+    latestTrade: {
+      c: string[]; // conditions
+      p: number; // price
+      s: number; // size
+      t: string; // timestamp
+      x: string; // exchange
     };
-  });
-};
+  }
+>;
 
+export class AlpacaClient {
+  private apiKey: string;
+  private apiSecret: string;
+  private baseUrl: string;
 
+  constructor(apiKey: string, apiSecret: string) {
+    this.apiKey = apiKey;
+    this.apiSecret = apiSecret;
+    this.baseUrl = 'https://data.alpaca.markets';
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    return {
+      'APCA-API-KEY-ID': this.apiKey,
+      'APCA-API-SECRET-KEY': this.apiSecret,
+      'Content-Type': 'application/json',
+    };
+  }
+
+  async getBars(symbols: string[]): Promise<Map<string, Bar[]>> {
+    const startDate = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const symbolsQuery = symbols.join(',');
+    const url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;
+
+    console.log(this.getAuthHeaders());
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch bars: ${response.status} ${response.statusText}`);
+    }
+
+    const data: AlpacaBarResponse = await response.json();
+    const result = new Map<string, Bar[]>();
+
+    for (const symbol of symbols) {
+      const bars = data.bars[symbol] || [];
+      result.set(
+        symbol,
+        bars.map((bar) => ({
+          ClosePrice: bar.c,
+          Symbol: symbol,
+        }))
+      );
+    }
+
+    return result;
+  }
+
+  async getLatestPrices(symbols: string[]): Promise<Record<string, number>> {
+    const symbolsQuery = symbols.join(',');
+    const url = `${this.baseUrl}/v2/stocks/snapshots?symbols=${symbolsQuery}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch snapshots: ${response.status} ${response.statusText}`);
+    }
+
+    const data: AlpacaSnapshotResponse = await response.json();
+    const result: Record<string, number> = {};
+
+    for (const symbol of symbols) {
+      const snapshot = data[symbol];
+      if (snapshot && snapshot.latestTrade) {
+        result[symbol] = snapshot.latestTrade.p;
+      }
+    }
+
+    return result;
+  }
+}
