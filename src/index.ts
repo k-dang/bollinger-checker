@@ -28,34 +28,49 @@ export default {
   },
 
   async scheduled(event, env): Promise<void> {
-    const tickerSymbols = ['AAPL', 'TSLA'];
+    try {
+      const tickerSymbols = ['AAPL', 'TSLA', 'ADBE'];
 
-    const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
-    const task1 = await alpacaClient.getBars(tickerSymbols);
-    const task2 = await alpacaClient.getLatestPrices(tickerSymbols);
+      const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
+      const barsTask = await alpacaClient.getBars(tickerSymbols);
+      const latestPricesTask = await alpacaClient.getLatestPrices(tickerSymbols);
 
-    // Wait for both promises to resolve
-    const [bars, latestPrices] = await Promise.all([task1, task2]);
+      const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
-    const results = await checkBollingerBands(bars, latestPrices);
+      const results = await checkBollingerBands(bars, latestPrices);
 
-    const fields = results.map((result) => {
-      return {
-        name: 'Alert',
-        value: result,
-      };
-    });
+      const discordFields = results.map((result) => {
+        return [
+          {
+            name: result.symbol,
+            value: result.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS',
+          },
+          {
+            name: result.result,
+            value: result.resultValue,
+          },
+          {
+            name: result.optionsTableTitle,
+            value: result.optionsTable,
+          },
+        ];
+      });
 
-    const resp = await fetch(env.DISCORD_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(getDiscordWebhookBody(fields)),
-    });
-    const wasSuccessful = resp.ok ? 'success' : 'fail';
+      // TODO send in parrallel
+      for (const fields of discordFields) {
+        await fetch(env.DISCORD_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(getDiscordWebhookBody(fields)),
+        });
+      }
 
-    // You could store this result in KV, write to a D1 Database, or publish to a Queue.
-    console.log(`trigger fired at ${event.cron}: ${wasSuccessful}`);
+      // You could store this result in KV, write to a D1 Database, or publish to a Queue.
+      console.log(`trigger fired at ${event.cron}`);
+    } catch (err) {
+      console.error('Scheduled event failed:', err);
+    }
   },
 } satisfies ExportedHandler<Env>;

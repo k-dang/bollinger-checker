@@ -7,7 +7,6 @@ export const getDiscordWebhookBody = (fields: fields[]) => {
   return {
     embeds: [
       {
-        title: 'Bollinger Band Alert',
         fields: fields,
       },
     ],

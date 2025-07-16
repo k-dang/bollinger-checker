@@ -52,31 +52,47 @@ export const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Recor
   return results;
 };
 
+interface BandCheckResult {
+  type: 'SELL_CALL' | 'SELL_PUT';
+  symbol: string;
+  result: string;
+  resultValue: string;
+  optionsTableTitle: string;
+  optionsTable: string;
+}
+
 export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices: Record<string, number>) => {
   const bands = await getBollingerBands(bars);
 
-  const results = [];
+  const results: BandCheckResult[] = [];
   for (const symbol of bars.keys()) {
     const latestPrice = latestPrices[symbol];
     const { upper, lower } = bands[symbol];
-    results.push(`Alert: ${symbol}: ${latestPrice} Upper: ${upper}, Lower: ${lower}`);
 
     if (isNearOrPastUpperBand(latestPrice, upper)) {
       // TODO get top 10 option chain
-      // Sell Calls
-      // Passed Upper band or within 1%
-      // return a list of options?
-      console.log(`Alert: ${symbol} is near or past the upper Bollinger Band at ${latestPrice}`);
+      results.push({
+        type: 'SELL_CALL',
+        symbol,
+        result: 'Passed Upper band or within 1%',
+        resultValue: `Current: ${latestPrice} \n Upper: ${upper}`,
+        optionsTableTitle: 'TODO',
+        optionsTable: '...',
+      });
     } else if (isNearOrPastLowerBand(latestPrice, lower)) {
       // TODO get top 10 option chain
-      // Sell Puts
-      // Passed Lower band or within 1%
-      // return a list of options?
-      console.log(`Alert: ${symbol} is near or past the lower Bollinger Band at ${latestPrice}`);
+      results.push({
+        type: 'SELL_PUT',
+        symbol,
+        result: 'Passed Lower band or within 1%',
+        resultValue: `Current: ${latestPrice} \n Lower: ${lower}`,
+        optionsTableTitle: 'TODO',
+        optionsTable: '...',
+      });
     }
 
     // add finished log
-    console.log(`[BollingerChecker][date(${new Date().toISOString()})]: finished checking ${symbol}`);
+    console.log(`[BollingerChecker][date(${new Date().toISOString()})]: Finished checking ${symbol}`);
   }
 
   return results;

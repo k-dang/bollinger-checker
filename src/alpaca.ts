@@ -55,7 +55,6 @@ export class AlpacaClient {
     const symbolsQuery = symbols.join(',');
     const url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;
 
-    console.log(this.getAuthHeaders());
     const response = await fetch(url, {
       method: 'GET',
       headers: this.getAuthHeaders(),
