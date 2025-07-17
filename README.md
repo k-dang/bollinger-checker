@@ -18,6 +18,14 @@ It is setup to run on the following schedule:
 
 ## Local development
 
+Add env variables using a `.dev.vars` file with the following variables
+
+```
+ALPACA_API_KEY
+ALPACA_API_SECRET
+DISCORD_WEBHOOK_URL
+```
+
 Starts up a local server for developing your Worker
 ```
 pnpm dev
@@ -37,7 +45,6 @@ Run test scripts for the alpaca api
 ```
 pnpm alpaca
 ```
-
 
 ## Deployment
 
