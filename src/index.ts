@@ -17,7 +17,7 @@
 
 import { AlpacaClient } from './alpaca';
 import { checkBollingerBands } from './bollingerChecker';
-import { getDiscordWebhookBody } from './discord';
+import { getDiscordWebhookBody, getEmptyDiscordWebhookBody } from './discord';
 
 export default {
   async fetch(req) {
@@ -39,32 +39,42 @@ export default {
 
       const results = await checkBollingerBands(bars, latestPrices);
 
-      const discordFields = results.map((result) => {
-        return [
-          {
-            name: result.symbol,
-            value: result.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS',
-          },
-          {
-            name: result.result,
-            value: result.resultValue,
-          },
-          {
-            name: result.optionsTableTitle,
-            value: result.optionsTable,
-          },
-        ];
-      });
-
-      // TODO send in parrallel
-      for (const fields of discordFields) {
+      if (results.length === 0) {
         await fetch(env.DISCORD_WEBHOOK_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(getDiscordWebhookBody(fields)),
+          body: JSON.stringify(getEmptyDiscordWebhookBody('Nothing Passed')),
         });
+      } else {
+        const discordFields = results.map((result) => {
+          return [
+            {
+              name: result.symbol,
+              value: result.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS',
+            },
+            {
+              name: result.result,
+              value: result.resultValue,
+            },
+            {
+              name: result.optionsTableTitle,
+              value: result.optionsTable,
+            },
+          ];
+        });
+
+        // TODO send in parrallel
+        for (const fields of discordFields) {
+          await fetch(env.DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(getDiscordWebhookBody(fields)),
+          });
+        }
       }
 
       // You could store this result in KV, write to a D1 Database, or publish to a Queue.

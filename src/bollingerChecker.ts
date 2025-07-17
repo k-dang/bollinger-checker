@@ -70,6 +70,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
     const { upper, lower } = bands[symbol];
 
     if (isNearOrPastUpperBand(latestPrice, upper)) {
+      // const optionsChain = await getYahooFinanceOptions('AAPL');
       // TODO get top 10 option chain
       results.push({
         type: 'SELL_CALL',
