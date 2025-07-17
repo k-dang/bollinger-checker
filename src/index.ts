@@ -65,16 +65,30 @@ export default {
           ];
         });
 
-        // TODO send in parrallel
-        for (const fields of discordFields) {
-          await fetch(env.DISCORD_WEBHOOK_URL, {
+        // Send Discord webhook requests in parallel
+        const webhookPromises = discordFields.map(fields => 
+          fetch(env.DISCORD_WEBHOOK_URL, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(getDiscordWebhookBody(fields)),
-          });
-        }
+          })
+        );
+        
+        const webhookResults = await Promise.allSettled(webhookPromises);
+        
+        // Log any failed webhook requests
+        webhookResults.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`Discord webhook request ${index + 1} failed:`, result.reason);
+          }
+        });
+        
+        const successCount = webhookResults.filter(result => result.status === 'fulfilled').length;
+        const failureCount = webhookResults.filter(result => result.status === 'rejected').length;
+        
+        console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 
       // You could store this result in KV, write to a D1 Database, or publish to a Queue.
