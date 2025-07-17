@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "deploy": "eslint src && wrangler deploy",
+    "deploy:prod": "eslint src && wrangler deploy -e=prod",
     "dev": "wrangler dev --test-scheduled",
     "start": "wrangler dev --test-scheduled",
     "cf-typegen": "wrangler types",
     "lint": "eslint src",
     "alpaca": "tsx --env-file=.env testscripts/test-alpaca.ts",
-    "fmp": "tsx --env-file=.env src/fmp.ts"
+    "fmp": "tsx --env-file=.env src/fmp.ts",
+    "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

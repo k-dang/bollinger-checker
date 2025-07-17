@@ -1,6 +1,20 @@
-# Cron Worker
+# BollingerBands on Workers
 
-This is a Cloudflare Worker with cron triggers
+This project implements a Cloudflare Worker that uses cron triggers to run scheduled tasks for monitoring Bollinger Bands on financial tickers. Any tickers that pass their bands will trigger a discord notification.
+
+![](images/image.png)
+
+It current uses Alpaca API for historical stock data and yahoo finance to obtain options chain data.
+
+Alpaca data sample
+![](images/alpaca_sample.png)
+
+Yahoo options data sample
+![](images/yahoo_options_sample.png)
+
+It is setup to run on the following schedule:
+ - `45 13 * * MON-FRI` // Runs at 13:45 UTC on weekdays
+ - `0 20 * * MON-FRI` // Runs at 20:00 UTC on weekdays
 
 ## Local development
 
@@ -9,19 +23,9 @@ Starts up a local server for developing your Worker
 pnpm dev
 ```
 
-Deploy your Wroker to Cloudflare
+Use the `env` flag to switch between environments
 ```
-pnpm run deploy --env=""
-```
-
-Deploy to `prod` env
-```
-pnpm run deploy --env=prod
-```
-
-Adding secrets to cloudflare workers
-```
-npx wrangler secret put secret-name --env=""
+pnpm dev -e=prod
 ```
 
 Generate types based on your Worker configuration
@@ -29,7 +33,34 @@ Generate types based on your Worker configuration
 pnpm cf-typegen
 ```
 
-Test scripts for the alpaca sdk
+Run test scripts for the alpaca api
 ```
 pnpm alpaca
 ```
+
+
+## Deployment
+
+Deploy your Wroker to Cloudflare
+```
+pnpm run deploy --env=""
+```
+
+Use the `env` flag to deploy to different environments
+```
+pnpm run deploy --env=prod
+```
+
+## Secret Management
+
+Secret management is handled via Wrangler for secure configuration.
+
+Adding secrets to cloudflare workers
+```
+npx wrangler secret put secret-name --env=""
+```
+
+## TODO
+
+- [ ] Switch to cloudflare secrets store
+- [ ] Setup github actions for deploy on merge
