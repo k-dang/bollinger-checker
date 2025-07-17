@@ -18,6 +18,7 @@
 import { AlpacaClient } from './alpaca';
 import { checkBollingerBands } from './bollingerChecker';
 import { getDiscordWebhookBody, getEmptyDiscordWebhookBody } from './discord';
+import { tickers as tickerSymbols } from './data/tickers';
 
 export default {
   async fetch(req) {
@@ -29,8 +30,6 @@ export default {
 
   async scheduled(event, env): Promise<void> {
     try {
-      const tickerSymbols = ['AAPL', 'TSLA', 'ADBE'];
-
       const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
       const barsTask = await alpacaClient.getBars(tickerSymbols);
       const latestPricesTask = await alpacaClient.getLatestPrices(tickerSymbols);
@@ -66,7 +65,7 @@ export default {
         });
 
         // Send Discord webhook requests in parallel
-        const webhookPromises = discordFields.map(fields => 
+        const webhookPromises = discordFields.map(fields =>
           fetch(env.DISCORD_WEBHOOK_URL, {
             method: 'POST',
             headers: {
@@ -75,19 +74,19 @@ export default {
             body: JSON.stringify(getDiscordWebhookBody(fields)),
           })
         );
-        
+
         const webhookResults = await Promise.allSettled(webhookPromises);
-        
+
         // Log any failed webhook requests
         webhookResults.forEach((result, index) => {
           if (result.status === 'rejected') {
             console.error(`Discord webhook request ${index + 1} failed:`, result.reason);
           }
         });
-        
+
         const successCount = webhookResults.filter(result => result.status === 'fulfilled').length;
         const failureCount = webhookResults.filter(result => result.status === 'rejected').length;
-        
+
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 

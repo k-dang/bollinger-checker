@@ -24,6 +24,10 @@ async function testAlpaca() {
     const prices = await client.getLatestPrices(symbols);
     console.log('Latest prices:', prices);
 
+    console.log('\nTesting getOptionsChain...');
+    const options = await client.getOptionsChain(symbols[0], 'call', 150, 200);
+    console.log('Options chain result:', options);
+
     console.log('\nTest completed successfully!');
   } catch (error) {
     console.error('Test failed:', error);
