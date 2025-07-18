@@ -17,7 +17,7 @@
     ]
   },
   "env": {
-    "dev": {},
+    "dev": {"name": "cron-worker"},
     "prod": {}
   },
   "compatibility_flags": ["nodejs_compat"]
