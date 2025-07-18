@@ -1,5 +1,6 @@
 import { BollingerBands } from 'trading-signals';
 import { Bar } from './alpaca';
+import { getLatestOptionChain } from './yf';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
@@ -59,6 +60,7 @@ interface BandCheckResult {
   resultValue: string;
   optionsTableTitle: string;
   optionsTable: string;
+  optionsExpirationDate?: string;
 }
 
 export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices: Record<string, number>) => {
@@ -70,25 +72,38 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
     const { upper, lower } = bands[symbol];
 
     if (isNearOrPastUpperBand(latestPrice, upper)) {
-      // const optionsChain = await getYahooFinanceOptions('AAPL');
-      // TODO get top 10 option chain
+      const optionsChain = await getLatestOptionChain(symbol);
+      const topOutOfTheMoneyCalls = optionsChain.calls
+        .filter((call) => {
+          return call.strike > latestPrice;
+        })
+        .slice(0, 10);
+      const optionsTable = buildOptionsTable(topOutOfTheMoneyCalls);
+
       results.push({
         type: 'SELL_CALL',
         symbol,
         result: 'Passed Upper band or within 1%',
-        resultValue: `Current: ${latestPrice} \n Upper: ${upper}`,
-        optionsTableTitle: 'TODO',
-        optionsTable: '...',
+        resultValue: `Current: ${latestPrice.toFixed(2)} \n Upper: ${upper.toFixed(2)}`,
+        optionsTableTitle: getOptionsTableTitle(),
+        optionsTable: optionsTable,
       });
     } else if (isNearOrPastLowerBand(latestPrice, lower)) {
-      // TODO get top 10 option chain
+      const optionsChain = await getLatestOptionChain(symbol);
+      const topOutOfTheMoneyPuts = optionsChain.puts
+        .filter((put) => {
+          return put.strike < latestPrice;
+        })
+        .slice(0, 10);
+      const optionsTable = buildOptionsTable(topOutOfTheMoneyPuts);
+
       results.push({
         type: 'SELL_PUT',
         symbol,
         result: 'Passed Lower band or within 1%',
         resultValue: `Current: ${latestPrice} \n Lower: ${lower}`,
-        optionsTableTitle: 'TODO',
-        optionsTable: '...',
+        optionsTableTitle: getOptionsTableTitle(),
+        optionsTable: optionsTable,
       });
     }
 
@@ -96,4 +111,39 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
   }
 
   return results;
+};
+
+export const formatCell = (value: string, width: number) => {
+  if (value.length > width) {
+    return value.substring(0, width);
+  }
+
+  return value.padStart(width);
+};
+
+const getOptionsTableTitle = () => {
+  const columns = ['strike', 'lastPrice', 'bid', 'ask', 'iv'];
+  return columns.join(' | ');
+};
+
+interface OptionChainRow {
+  strike: number;
+  lastPrice: number;
+  bid?: number;
+  ask?: number;
+  impliedVolatility?: number;
+}
+
+const buildOptionsTable = (chains: OptionChainRow[]) => {
+  return chains
+    .map((chain) => {
+      const strike = chain.strike.toFixed(2);
+      const lastPrice = chain.lastPrice.toFixed(2);
+      const bid = chain.bid?.toFixed(2) ?? '0';
+      const ask = chain.ask?.toFixed(2) ?? '0';
+      const impliedVolatility = chain.impliedVolatility?.toFixed(6) ?? '0';
+      const values = [strike, lastPrice, bid, ask, impliedVolatility];
+      return values.join(' | ');
+    })
+    .join('\n');
 };

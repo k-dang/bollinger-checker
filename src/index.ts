@@ -44,7 +44,7 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(getEmptyDiscordWebhookBody('Nothing Passed')),
+          body: getEmptyDiscordWebhookBody('Nothing Passed'),
         });
       } else {
         const discordFields = results.map((result) => {
@@ -64,14 +64,13 @@ export default {
           ];
         });
 
-        // Send Discord webhook requests in parallel
-        const webhookPromises = discordFields.map(fields =>
+        const webhookPromises = discordFields.map((fields) =>
           fetch(env.DISCORD_WEBHOOK_URL, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(getDiscordWebhookBody(fields)),
+            body: getDiscordWebhookBody(fields),
           })
         );
 
@@ -84,8 +83,8 @@ export default {
           }
         });
 
-        const successCount = webhookResults.filter(result => result.status === 'fulfilled').length;
-        const failureCount = webhookResults.filter(result => result.status === 'rejected').length;
+        const successCount = webhookResults.filter((result) => result.status === 'fulfilled').length;
+        const failureCount = webhookResults.filter((result) => result.status === 'rejected').length;
 
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
