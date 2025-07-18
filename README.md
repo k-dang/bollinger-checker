@@ -70,4 +70,4 @@ npx wrangler secret put secret-name --env=""
 ## TODO
 
 - [ ] Switch to cloudflare secrets store
-- [ ] Setup github actions for deploy on merge
+- [x] Setup cloudflare github connection

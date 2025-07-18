@@ -17,7 +17,7 @@
 
 import { AlpacaClient } from './alpaca';
 import { checkBollingerBands } from './bollingerChecker';
-import { getDiscordWebhookBody, getEmptyDiscordWebhookBody } from './discord';
+import { getDiscordWebhookBody, getEmptyDiscordWebhookBody } from './utils/discord';
 import { tickers as tickerSymbols } from './data/tickers';
 
 export default {

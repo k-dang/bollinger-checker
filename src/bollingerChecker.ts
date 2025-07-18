@@ -92,7 +92,6 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
       });
     }
 
-    // add finished log
     console.log(`[BollingerChecker][date(${new Date().toISOString()})]: Finished checking ${symbol}`);
   }
 

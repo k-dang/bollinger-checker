@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "deploy": "eslint src && wrangler deploy",
+    "deploy": "eslint src && wrangler deploy -e=dev",
     "deploy:prod": "eslint src && wrangler deploy -e=prod",
     "dev": "wrangler dev --test-scheduled",
     "start": "wrangler dev --test-scheduled",
