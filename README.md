@@ -71,3 +71,14 @@ npx wrangler secret put secret-name --env=""
 
 - [ ] Switch to cloudflare secrets store
 - [x] Setup cloudflare github connection
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. **Fork the repository** and create your branch from `main`.
+2. **Describe your changes** in clear commit messages.
+3. **Test your code** before submitting a Pull Request.
+4. **Submit a Pull Request** to the main repository and wait for review.
+
+Please read any existing issues and add your feedback or suggest improvements. By contributing, you agree to abide by the project's code of conduct.
