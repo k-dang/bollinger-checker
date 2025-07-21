@@ -1,79 +1,4 @@
-export interface Bar {
-  Timestamp: string; // ISO 8601 format
-  ClosePrice: number;
-  Symbol: string;
-}
-
-interface AlpacaBarResponse {
-  bars: Record<
-    string,
-    {
-      c: number; // close price
-      h: number; // high price
-      l: number; // low price
-      o: number; // open price
-      t: string; // timestamp
-      v: number; // volume
-    }[]
-  >;
-}
-
-type AlpacaSnapshotResponse = Record<
-  string,
-  {
-    latestTrade: {
-      c: string[]; // conditions
-      p: number; // price
-      s: number; // size
-      t: string; // timestamp
-      x: string; // exchange
-    };
-  }
->;
-
-export interface OptionChain {
-  symbol: string;
-  strike: number;
-  bidPrice: number;
-  askPrice: number;
-  lastPrice: number;
-  impliedVolatility: number;
-}
-
-interface AlpacaOptionsChainResponse {
-  snapshots: Record<
-    string,
-    {
-      dailyBar: {
-        c: number; // close price
-        h: number; // high price
-        l: number; // low price
-        n: number; // number of trades
-        o: number; // open price
-        t: string; // timestamp
-        v: number; // volume
-        vw: number; // volume weighted average price
-      };
-      latestQuote: {
-        ap: number; // ask price
-        as: number; // ask size
-        ax: string; // ask exchange
-        bp: number; // bid price
-        bs: number; // bid size
-        bx: string; // bid exchange
-        c: string; // condition
-        t: string; // timestamp
-      };
-      latestTrade: {
-        c: string; // condition
-        p: number; // price
-        s: number; // size
-        t: string; // timestamp
-        x: string; // exchange
-      };
-    }
-  >;
-}
+import { Bar, AlpacaBarResponse, AlpacaSnapshotResponse, OptionChain, AlpacaOptionsChainResponse } from './types/alpaca.types';
 
 export class AlpacaClient {
   private apiKey: string;
@@ -86,7 +11,7 @@ export class AlpacaClient {
     this.baseUrl = 'https://data.alpaca.markets';
   }
 
-  private getAuthHeaders(): Record<string, string> {
+  private getAuthHeaders() {
     return {
       'APCA-API-KEY-ID': this.apiKey,
       'APCA-API-SECRET-KEY': this.apiSecret,
@@ -94,7 +19,7 @@ export class AlpacaClient {
     };
   }
 
-  async getBars(symbols: string[]): Promise<Map<string, Bar[]>> {
+  async getBars(symbols: string[]) {
     const startDate = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const symbolsQuery = symbols.join(',');
     const url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;
@@ -126,7 +51,7 @@ export class AlpacaClient {
     return result;
   }
 
-  async getLatestPrices(symbols: string[]): Promise<Record<string, number>> {
+  async getLatestPrices(symbols: string[]) {
     const symbolsQuery = symbols.join(',');
     const url = `${this.baseUrl}/v2/stocks/snapshots?symbols=${symbolsQuery}`;
 
