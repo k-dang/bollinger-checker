@@ -17,8 +17,9 @@
 
 import { AlpacaClient } from './alpaca';
 import { checkBollingerBands } from './bollingerChecker';
-import { getDiscordWebhookBody, getEmptyDiscordWebhookBody } from './utils/discord';
+import { sendDiscordWebhook, sendDiscordWebhookEmbeds } from './utils/discord';
 import { tickers as tickerSymbols } from './data/tickers';
+import { delay } from './utils/time';
 
 export default {
   async fetch(req) {
@@ -39,13 +40,7 @@ export default {
       const results = await checkBollingerBands(bars, latestPrices);
 
       if (results.length === 0) {
-        await fetch(env.DISCORD_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: getEmptyDiscordWebhookBody('Nothing Passed'),
-        });
+        sendDiscordWebhook(env.DISCORD_WEBHOOK_URL, 'Nothing Passed');
       } else {
         const discordFields = results.map((result) => {
           return [
@@ -64,32 +59,26 @@ export default {
           ];
         });
 
-        const webhookPromises = discordFields.map((fields) =>
-          fetch(env.DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: getDiscordWebhookBody(fields),
-          })
-        );
+        let successCount = 0;
+        let failureCount = 0;
 
-        const webhookResults = await Promise.allSettled(webhookPromises);
-
-        // Log any failed webhook requests
-        webhookResults.forEach((result, index) => {
-          if (result.status === 'rejected') {
-            console.error(`Discord webhook request ${index + 1} failed:`, result.reason);
+        for (const fields of discordFields) {
+          try {
+            const response = await sendDiscordWebhookEmbeds(env.DISCORD_WEBHOOK_URL, fields);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            successCount++;
+          } catch (err) {
+            console.error('Discord webhook request failed:', err);
+            failureCount++;
           }
-        });
-
-        const successCount = webhookResults.filter((result) => result.status === 'fulfilled').length;
-        const failureCount = webhookResults.filter((result) => result.status === 'rejected').length;
+          await delay(250);
+        }
 
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 
-      // You could store this result in KV, write to a D1 Database, or publish to a Queue.
       console.log(`trigger fired at ${event.cron}`);
     } catch (err) {
       console.error('Scheduled event failed:', err);

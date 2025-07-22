@@ -4,7 +4,7 @@ interface fields {
   inline?: boolean;
 }
 
-export const getDiscordWebhookBody = (fields: fields[]) => {
+const buildDiscordWebhookEmbeds = (fields: fields[]) => {
   return JSON.stringify({
     embeds: [
       {
@@ -14,8 +14,30 @@ export const getDiscordWebhookBody = (fields: fields[]) => {
   });
 };
 
-export const getEmptyDiscordWebhookBody = (message: string) => {
+const buildDiscordWebhookContent = (message: string) => {
   return JSON.stringify({
     content: message,
   });
+};
+
+export const sendDiscordWebhook = async (webhookUrl: string, message: string) => {
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: buildDiscordWebhookContent(message),
+  });
+};
+
+export const sendDiscordWebhookEmbeds = async (webhookUrl: string, fields: fields[]) => {
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: buildDiscordWebhookEmbeds(fields),
+  });
+
+  return response;
 };
