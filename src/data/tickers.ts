@@ -13,7 +13,6 @@ export const tickers = [
   'AMD',
   'ABNB',
   'ADSK',
-  'BMBL',
   'CPNG',
   'JD',
   'LRCX',

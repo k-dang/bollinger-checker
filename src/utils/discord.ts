@@ -56,7 +56,7 @@ export async function notifyDiscordWithResults(webhookUrl: string, results: Band
   for (const fields of discordFieldsList) {
     try {
       const response = await sendDiscordWebhookEmbeds(webhookUrl, fields);
-      await delay(250);
+      await delay(500);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       successCount++;
     } catch (err) {
