@@ -17,9 +17,8 @@
 
 import { AlpacaClient } from './alpaca';
 import { checkBollingerBands } from './bollingerChecker';
-import { sendDiscordWebhook, sendDiscordWebhookEmbeds } from './utils/discord';
+import { sendDiscordWebhook, notifyDiscordWithResults } from './utils/discord';
 import { tickers as tickerSymbols } from './data/tickers';
-import { delay } from './utils/time';
 
 export default {
   async fetch(req) {
@@ -32,50 +31,17 @@ export default {
   async scheduled(event, env): Promise<void> {
     try {
       const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
-      const barsTask = await alpacaClient.getBars(tickerSymbols);
-      const latestPricesTask = await alpacaClient.getLatestPrices(tickerSymbols);
 
+      const barsTask = alpacaClient.getBars(tickerSymbols);
+      const latestPricesTask = alpacaClient.getLatestPrices(tickerSymbols);
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
       const results = await checkBollingerBands(bars, latestPrices);
 
       if (results.length === 0) {
-        sendDiscordWebhook(env.DISCORD_WEBHOOK_URL, 'Nothing Passed');
+        await sendDiscordWebhook(env.DISCORD_WEBHOOK_URL, 'Nothing Passed');
       } else {
-        const discordFields = results.map((result) => {
-          return [
-            {
-              name: result.symbol,
-              value: result.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS',
-            },
-            {
-              name: result.result,
-              value: result.resultValue,
-            },
-            {
-              name: result.optionsTableTitle,
-              value: result.optionsTable,
-            },
-          ];
-        });
-
-        let successCount = 0;
-        let failureCount = 0;
-
-        for (const fields of discordFields) {
-          try {
-            const response = await sendDiscordWebhookEmbeds(env.DISCORD_WEBHOOK_URL, fields);
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            successCount++;
-          } catch (err) {
-            console.error('Discord webhook request failed:', err);
-            failureCount++;
-          }
-          await delay(250);
-        }
-
+        const { successCount, failureCount } = await notifyDiscordWithResults(env.DISCORD_WEBHOOK_URL, results);
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 

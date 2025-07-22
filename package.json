@@ -10,7 +10,6 @@
     "cf-typegen": "wrangler types",
     "lint": "eslint src",
     "alpaca": "tsx --env-file=.env testscripts/test-alpaca.ts",
-    "fmp": "tsx --env-file=.env src/fmp.ts",
     "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts"
   },
   "devDependencies": {

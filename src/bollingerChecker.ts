@@ -40,8 +40,6 @@ export const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Recor
       bb.add(bar.ClosePrice);
     }
 
-    // Note: `getResultOrThrow` will throw an error if the indicator is not stable.
-    // We have more data points than the required period, so it should be stable.
     const { middle, upper, lower } = bb.getResultOrThrow();
     results[symbol] = {
       upper: upper.toNumber(),
@@ -53,7 +51,31 @@ export const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Recor
   return results;
 };
 
-interface BandCheckResult {
+interface OptionChainRow {
+  strike: number;
+  lastPrice: number;
+  bid?: number;
+  ask?: number;
+  impliedVolatility?: number;
+}
+
+const optionsTableTitle = () => ['strike', 'lastPrice', 'bid', 'ask', 'iv'].join(' | ');
+
+const buildOptionsTable = (chains: OptionChainRow[]) => {
+  return chains
+    .map((chain) => {
+      const strike = chain.strike.toFixed(2);
+      const lastPrice = chain.lastPrice.toFixed(2);
+      const bid = chain.bid?.toFixed(2) ?? '0';
+      const ask = chain.ask?.toFixed(2) ?? '0';
+      const impliedVolatility = chain.impliedVolatility?.toFixed(6) ?? '0';
+      const values = [strike, lastPrice, bid, ask, impliedVolatility];
+      return values.join(' | ');
+    })
+    .join('\n');
+};
+
+export interface BandCheckResult {
   type: 'SELL_CALL' | 'SELL_PUT';
   symbol: string;
   result: string;
@@ -85,7 +107,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
         symbol,
         result: 'Passed Upper band or within 1%',
         resultValue: `Current: ${latestPrice.toFixed(2)} \n Upper: ${upper.toFixed(2)}`,
-        optionsTableTitle: getOptionsTableTitle(),
+        optionsTableTitle: optionsTableTitle(),
         optionsTable: optionsTable,
       });
     } else if (isNearOrPastLowerBand(latestPrice, lower)) {
@@ -102,7 +124,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
         symbol,
         result: 'Passed Lower band or within 1%',
         resultValue: `Current: ${latestPrice} \n Lower: ${lower}`,
-        optionsTableTitle: getOptionsTableTitle(),
+        optionsTableTitle: optionsTableTitle(),
         optionsTable: optionsTable,
       });
     }
@@ -112,39 +134,4 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
 
   console.log(`[BollingerChecker][date(${new Date().toISOString()})]: Total results: ${results.length}`);
   return results;
-};
-
-export const formatCell = (value: string, width: number) => {
-  if (value.length > width) {
-    return value.substring(0, width);
-  }
-
-  return value.padStart(width);
-};
-
-const getOptionsTableTitle = () => {
-  const columns = ['strike', 'lastPrice', 'bid', 'ask', 'iv'];
-  return columns.join(' | ');
-};
-
-interface OptionChainRow {
-  strike: number;
-  lastPrice: number;
-  bid?: number;
-  ask?: number;
-  impliedVolatility?: number;
-}
-
-const buildOptionsTable = (chains: OptionChainRow[]) => {
-  return chains
-    .map((chain) => {
-      const strike = chain.strike.toFixed(2);
-      const lastPrice = chain.lastPrice.toFixed(2);
-      const bid = chain.bid?.toFixed(2) ?? '0';
-      const ask = chain.ask?.toFixed(2) ?? '0';
-      const impliedVolatility = chain.impliedVolatility?.toFixed(6) ?? '0';
-      const values = [strike, lastPrice, bid, ask, impliedVolatility];
-      return values.join(' | ');
-    })
-    .join('\n');
 };
