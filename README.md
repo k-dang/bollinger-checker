@@ -46,16 +46,27 @@ Run test scripts for the alpaca api
 pnpm alpaca
 ```
 
+Run test scripts for yfinance setup
+```
+pnpm yahoo
+```
+
 ## Deployment
 
-Deploy your Wroker to Cloudflare
+Deployment is handled via cloudflare integration with github, so any merges into `main` will kick off a deployment to both `dev` & `prod` workers
+
+### Manual
+
+We can also deploy manually to cloudflare with the following commands
+
+Deploy to the `dev` environment
 ```
-pnpm run deploy --env=""
+pnpm run deploy
 ```
 
-Use the `env` flag to deploy to different environments
+Deploy to `prod`
 ```
-pnpm run deploy --env=prod
+pnpm run deploy:prod
 ```
 
 ## Secret Management
@@ -69,5 +80,4 @@ npx wrangler secret put secret-name --env=""
 
 ## TODO
 
-- [ ] Switch to cloudflare secrets store
 - [x] Setup cloudflare github connection
