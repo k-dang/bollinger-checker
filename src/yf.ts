@@ -3,14 +3,14 @@ import yahooFinance from 'yahoo-finance2';
 yahooFinance.suppressNotices(['yahooSurvey']);
 yahooFinance.setGlobalConfig({
   logger: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    error: () => {},
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    info: (...args: any[]) => console.log(...args),
+    info: (...args: any[]) => console.log('[YahooFinance] info', ...args),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    warn: (...args: any[]) => console.error(...args),
+    warn: (...args: any[]) => console.error('[YahooFinance] warn', ...args),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    debug: (...args: any[]) => console.log(...args),
+    error: (...args: any[]) => console.error('[YahooFinance] error', ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    debug: (...args: any[]) => console.log('[YahooFinance] debug', ...args),
   },
 });
 
