@@ -9,6 +9,8 @@
     "start": "wrangler dev --test-scheduled",
     "cf-typegen": "wrangler types",
     "lint": "eslint src",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "alpaca": "tsx --env-file=.env testscripts/test-alpaca.ts",
     "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts"
   },
@@ -16,6 +18,7 @@
     "@eslint/js": "^9.31.0",
     "@types/node": "^24.0.13",
     "eslint": "^9.31.0",
+    "prettier": "^3.6.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.37.0",

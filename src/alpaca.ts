@@ -110,7 +110,7 @@ export class AlpacaClient {
           Timestamp: bar.t,
           ClosePrice: bar.c,
           Symbol: symbol,
-        }))
+        })),
       );
     }
 

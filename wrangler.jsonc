@@ -8,19 +8,19 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-07-05",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "triggers": {
     "crons": [
       "45 13 * * MON-FRI", // Runs at 13:45 UTC on weekdays
-      "0 20 * * MON-FRI" // Runs at 20:00 UTC on weekdays
-    ]
+      "0 20 * * MON-FRI", // Runs at 20:00 UTC on weekdays
+    ],
   },
   "env": {
     "dev": { "name": "cron-worker" },
-    "prod": { "name": "cron-worker-prod" }
+    "prod": { "name": "cron-worker-prod" },
   },
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_flags": ["nodejs_compat"],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
