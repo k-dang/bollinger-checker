@@ -4,7 +4,7 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "cron-worker",
+  "name": "bollinger-checker",
   "main": "src/index.ts",
   "compatibility_date": "2025-07-05",
   "observability": {
@@ -17,8 +17,8 @@
     ],
   },
   "env": {
-    "dev": { "name": "cron-worker" },
-    "prod": { "name": "cron-worker-prod" },
+    "dev": { "name": "bollinger-checker" },
+    "prod": { "name": "bollinger-checker-prod" },
   },
   "compatibility_flags": ["nodejs_compat"],
   /**
