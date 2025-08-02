@@ -15,8 +15,8 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { AlpacaClient } from './alpaca';
-import { checkBollingerBands } from './bollingerChecker';
+import { AlpacaClient } from './utils/alpaca';
+import { checkBollingerBands } from './checkers/bollingerChecker';
 import { sendDiscordWebhook, notifyDiscordWithResults } from './utils/discord';
 import { tickers as tickerSymbols } from './data/tickers';
 

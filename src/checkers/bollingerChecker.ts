@@ -1,6 +1,6 @@
 import { BollingerBands } from 'trading-signals';
-import { Bar } from './alpaca';
-import { getLatestOptionChain } from './yf';
+import { Bar } from '../utils/alpaca';
+import { getLatestOptionChain } from '../utils/yf';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.

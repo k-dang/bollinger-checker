@@ -1,4 +1,4 @@
-import { BandCheckResult } from '../bollingerChecker';
+import { BandCheckResult } from '../checkers/bollingerChecker';
 import { delay } from './time';
 
 export interface Field {

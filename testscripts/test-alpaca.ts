@@ -1,4 +1,4 @@
-import { AlpacaClient } from '../src/alpaca';
+import { AlpacaClient } from '../src/utils/alpaca';
 
 async function testAlpaca() {
   // These should come from environment variables in a real implementation

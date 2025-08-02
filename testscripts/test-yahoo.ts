@@ -1,5 +1,5 @@
-import { formatCell } from '../src/bollingerChecker';
-import { getLatestOptionChain } from '../src/yf';
+import { formatCell } from '../src/checkers/bollingerChecker';
+import { getLatestOptionChain } from '../src/utils/yf';
 
 const getOptionsTableTitle = () => {
   const columns = ['strike', 'lastPrice', 'bid', 'ask', 'iv'];
