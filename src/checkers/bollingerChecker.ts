@@ -1,5 +1,4 @@
 import { BollingerBands } from 'trading-signals';
-import { Bar } from '../utils/alpaca';
 import { getLatestOptionChain } from '../utils/yf';
 
 /**
@@ -8,7 +7,7 @@ import { getLatestOptionChain } from '../utils/yf';
  * @param upperBandPrice - The upper Bollinger Band price.
  * @param thresholdPercent - The percentage threshold (default: 1 for 1%).
  */
-export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thresholdPercent = 1): boolean => {
+export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thresholdPercent = 1) => {
   const threshold = price * (1 + thresholdPercent / 100);
   return threshold >= upperBandPrice;
 };
@@ -19,10 +18,16 @@ export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thr
  * @param lowerBandPrice - The lower Bollinger Band price.
  * @param thresholdPercent - The percentage threshold (default: 1 for 1%).
  */
-export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thresholdPercent = 1): boolean => {
+export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thresholdPercent = 1) => {
   const threshold = price * (1 - thresholdPercent / 100);
   return threshold <= lowerBandPrice;
 };
+
+export interface Bar {
+  Timestamp: string; // ISO 8601 format
+  ClosePrice: number;
+  Symbol: string;
+}
 
 interface BollingerBandResult {
   upper: number;
@@ -59,7 +64,7 @@ interface OptionChainRow {
   impliedVolatility?: number;
 }
 
-const optionsTableTitle = () => ['strike', 'lastPrice', 'bid', 'ask', 'iv'].join(' | ');
+const optionsTableTitle = ['strike', 'lastPrice', 'bid', 'ask', 'iv'].join(' | ');
 
 const buildOptionsTable = (chains: OptionChainRow[]) => {
   return chains
@@ -107,7 +112,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
         symbol,
         result: 'Passed Upper band or within 1%',
         resultValue: `Current: ${latestPrice.toFixed(2)} \n Upper: ${upper.toFixed(2)}`,
-        optionsTableTitle: optionsTableTitle(),
+        optionsTableTitle: optionsTableTitle,
         optionsTable: optionsTable,
       });
     } else if (isNearOrPastLowerBand(latestPrice, lower)) {
@@ -124,7 +129,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
         symbol,
         result: 'Passed Lower band or within 1%',
         resultValue: `Current: ${latestPrice} \n Lower: ${lower}`,
-        optionsTableTitle: optionsTableTitle(),
+        optionsTableTitle: optionsTableTitle,
         optionsTable: optionsTable,
       });
     }

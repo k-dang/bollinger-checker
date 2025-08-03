@@ -2,6 +2,7 @@
   "name": "cron-worker",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "eslint src && wrangler deploy -e=dev",
     "deploy:prod": "eslint src && wrangler deploy -e=prod",
@@ -12,7 +13,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "alpaca": "tsx --env-file=.env testscripts/test-alpaca.ts",
-    "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts"
+    "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts",
+    "rsi": "tsx --env-file=.env testscripts/test-rsi.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

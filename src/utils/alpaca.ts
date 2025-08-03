@@ -1,3 +1,5 @@
+import { Bar } from '../checkers/bollingerChecker';
+
 export interface AlpacaBarResponse {
   bars: Record<
     string,
@@ -60,12 +62,6 @@ export type AlpacaSnapshotResponse = Record<
   }
 >;
 
-export interface Bar {
-  Timestamp: string; // ISO 8601 format
-  ClosePrice: number;
-  Symbol: string;
-}
-
 export class AlpacaClient {
   private apiKey: string;
   private apiSecret: string;
@@ -85,8 +81,8 @@ export class AlpacaClient {
     };
   }
 
-  async getBars(symbols: string[]) {
-    const startDate = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  async getBars(symbols: string[], days = 35) {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const symbolsQuery = symbols.join(',');
     const url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;
 

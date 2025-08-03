@@ -1,10 +1,4 @@
-import { formatCell } from '../src/checkers/bollingerChecker';
 import { getLatestOptionChain } from '../src/utils/yf';
-
-const getOptionsTableTitle = () => {
-  const columns = ['strike', 'lastPrice', 'bid', 'ask', 'iv'];
-  return columns.map((col) => formatCell(col, 9)).join(' | ');
-};
 
 async function testYahoo() {
   const optionsChain = await getLatestOptionChain('AAPL');
@@ -18,7 +12,6 @@ async function testYahoo() {
     .slice(0, 10);
   console.table(validChains);
 
-  console.log(getOptionsTableTitle());
 
   const res = validChains.map((chain) => {
     const strike = chain.strike.toFixed(2);
@@ -28,7 +21,7 @@ async function testYahoo() {
     const impliedVolatility = chain.impliedVolatility?.toFixed(4) ?? '0';
     const values = [strike, lastPrice, bid, ask, impliedVolatility];
 
-    const row = values.map((col) => formatCell(col, 9)).join(' | ');
+    const row = values.join(' | ');
     return row;
   });
 
