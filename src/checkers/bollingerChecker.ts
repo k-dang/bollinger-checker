@@ -83,11 +83,10 @@ const buildOptionsTable = (chains: OptionChainRow[]) => {
 export interface BandCheckResult {
   type: 'SELL_CALL' | 'SELL_PUT';
   symbol: string;
-  result: string;
-  resultValue: string;
+  resultTitle: string; // Passed Upper band | Passed Lower band
+  resultValue: string; // Current x | Upper x | Lower x
   optionsTableTitle: string;
   optionsTable: string;
-  optionsExpirationDate?: string;
 }
 
 export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices: Record<string, number>) => {
@@ -110,7 +109,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
       results.push({
         type: 'SELL_CALL',
         symbol,
-        result: 'Passed Upper band or within 1%',
+        resultTitle: 'Passed Upper band or within 1%',
         resultValue: `Current: ${latestPrice.toFixed(2)} \n Upper: ${upper.toFixed(2)}`,
         optionsTableTitle: optionsTableTitle,
         optionsTable: optionsTable,
@@ -127,7 +126,7 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
       results.push({
         type: 'SELL_PUT',
         symbol,
-        result: 'Passed Lower band or within 1%',
+        resultTitle: 'Passed Lower band or within 1%',
         resultValue: `Current: ${latestPrice} \n Lower: ${lower}`,
         optionsTableTitle: optionsTableTitle,
         optionsTable: optionsTable,

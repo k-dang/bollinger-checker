@@ -1,4 +1,5 @@
 import { BandCheckResult } from '../checkers/bollingerChecker';
+import { RSIResult } from '../checkers/rsiChecker';
 import { delay } from './time';
 
 export interface Field {
@@ -45,11 +46,17 @@ export const sendDiscordWebhookEmbeds = async (webhookUrl: string, fields: Field
   return response;
 };
 
-export async function notifyDiscordWithResults(webhookUrl: string, results: BandCheckResult[]) {
+interface FullResult {
+  bollingerResult: BandCheckResult;
+  rsiResult?: RSIResult;
+}
+
+export async function notifyDiscordWithResults(webhookUrl: string, results: FullResult[]) {
   const discordFieldsList = results.map((result) => [
-    { name: result.symbol, value: result.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS' },
-    { name: result.result, value: result.resultValue },
-    { name: result.optionsTableTitle, value: result.optionsTable },
+    { name: result.bollingerResult.symbol, value: result.bollingerResult.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS' },
+    { name: result.bollingerResult.resultTitle, value: result.bollingerResult.resultValue },
+    { name: `RSI: ${result.rsiResult?.rsi}`, value: result.rsiResult?.status ?? '' },
+    { name: result.bollingerResult.optionsTableTitle, value: result.bollingerResult.optionsTable },
   ]);
   let successCount = 0;
   let failureCount = 0;

@@ -19,6 +19,7 @@ import { AlpacaClient } from './utils/alpaca';
 import { checkBollingerBands } from './checkers/bollingerChecker';
 import { sendDiscordWebhook, notifyDiscordWithResults } from './utils/discord';
 import { tickers as tickerSymbols } from './data/tickers';
+import { calculateRSI } from './checkers/rsiChecker';
 
 export default {
   async fetch(req) {
@@ -36,12 +37,22 @@ export default {
       const latestPricesTask = alpacaClient.getLatestPrices(tickerSymbols);
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
+      // combine results
       const results = await checkBollingerBands(bars, latestPrices);
+      const rsiResults = calculateRSI(bars);
+
+      const extendedResults = results.map((result) => {
+        const rsi = rsiResults.get(result.symbol);
+        return {
+          bollingerResult: result,
+          rsiResult: rsi,
+        };
+      });
 
       if (results.length === 0) {
         await sendDiscordWebhook(env.DISCORD_WEBHOOK_URL, 'Nothing Passed');
       } else {
-        const { successCount, failureCount } = await notifyDiscordWithResults(env.DISCORD_WEBHOOK_URL, results);
+        const { successCount, failureCount } = await notifyDiscordWithResults(env.DISCORD_WEBHOOK_URL, extendedResults);
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 
