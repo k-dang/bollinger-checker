@@ -8,6 +8,7 @@
 - **Type check**: `pnpm typecheck` (TypeScript type checking)
 - **Test scripts**: `pnpm alpaca`, `pnpm yahoo`, `pnpm rsi` (run individual test scripts in testscripts/)
 - **Deploy**: `pnpm deploy` (dev), `pnpm deploy:prod` (production)
+- **Test**: `pnpm run test` (runs vitest)
 
 ## Code Style Guidelines
 - **ESM modules**: Use ES modules (`import`/`export`), project is `"type": "module"`
@@ -20,3 +21,4 @@
 - **Functions**: Prefer arrow functions for simple operations, use proper JSDoc for exported functions
 - **File structure**: Separate concerns into utils/, checkers/, data/ directories
 - **Environment**: This is a Cloudflare Worker project using Wrangler for deployment and cron triggers
+- **Tests**: Always use vitest for writing unittests

@@ -15,7 +15,8 @@
     "alpaca": "tsx --env-file=.env testscripts/test-alpaca.ts",
     "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts",
     "rsi": "tsx --env-file=.env testscripts/test-rsi.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

@@ -8,8 +8,8 @@ import { getLatestOptionChain } from '../utils/yf';
  * @param thresholdPercent - The percentage threshold (default: 1 for 1%).
  */
 export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thresholdPercent = 1) => {
-  const threshold = price * (1 + thresholdPercent / 100);
-  return threshold >= upperBandPrice;
+  const lowerThreshold = upperBandPrice * (1 - thresholdPercent / 100);
+  return price >= lowerThreshold;
 };
 
 /**
@@ -19,8 +19,8 @@ export const isNearOrPastUpperBand = (price: number, upperBandPrice: number, thr
  * @param thresholdPercent - The percentage threshold (default: 1 for 1%).
  */
 export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thresholdPercent = 1) => {
-  const threshold = price * (1 - thresholdPercent / 100);
-  return threshold <= lowerBandPrice;
+  const upperThreshold = lowerBandPrice * (1 + thresholdPercent / 100);
+  return price <= upperThreshold;
 };
 
 export interface Bar {
