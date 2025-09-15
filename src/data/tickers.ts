@@ -29,4 +29,7 @@ export const tickers = [
   'CRM',
   'COIN',
   'AVGO',
+  "PLTR",
+  "LLY",
+  "HOOD",
 ];
