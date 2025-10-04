@@ -20,6 +20,7 @@ import { checkBollingerBands } from './checkers/bollingerChecker';
 import { sendDiscordWebhook, notifyDiscordWithResults } from './utils/discord';
 import { tickers as tickerSymbols } from './data/tickers';
 import { calculateRSI } from './checkers/rsiChecker';
+import { YahooOptionsProvider } from './core/providers/OptionsProvider';
 
 export default {
   async fetch(req) {
@@ -38,7 +39,7 @@ export default {
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
       // combine results
-      const results = await checkBollingerBands(bars, latestPrices);
+      const results = await checkBollingerBands(bars, latestPrices, new YahooOptionsProvider());
       const rsiResults = calculateRSI(bars);
 
       const extendedResults = results.map((result) => {

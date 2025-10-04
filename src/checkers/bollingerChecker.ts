@@ -1,5 +1,5 @@
 import { BollingerBands } from 'trading-signals';
-import { getLatestOptionChain } from '../utils/yf';
+import { IOptionsProvider } from '../core/providers/OptionsProvider';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
@@ -35,7 +35,7 @@ interface BollingerBandResult {
   lower: number;
 }
 
-export const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Record<string, BollingerBandResult>> => {
+const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Record<string, BollingerBandResult>> => {
   const results: Record<string, BollingerBandResult> = {};
 
   for (const [symbol, value] of bars.entries()) {
@@ -66,7 +66,7 @@ interface OptionChainRow {
 
 const optionsTableTitle = ['strike', 'lastPrice', 'bid', 'ask', 'iv'].join(' | ');
 
-const buildOptionsTable = (chains: OptionChainRow[]) => {
+export const buildOptionsTable = (chains: OptionChainRow[]) => {
   return chains
     .map((chain) => {
       const strike = chain.strike.toFixed(2);
@@ -89,22 +89,27 @@ export interface BandCheckResult {
   optionsTable: string;
 }
 
-export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices: Record<string, number>) => {
+export const checkBollingerBands = async (
+  bars: Map<string, Bar[]>,
+  latestPrices: Record<string, number>,
+  optionsProvider: IOptionsProvider,
+) => {
   const bands = await getBollingerBands(bars);
 
   const results: BandCheckResult[] = [];
+
   for (const symbol of bars.keys()) {
     const latestPrice = latestPrices[symbol];
     const { upper, lower } = bands[symbol];
 
     if (isNearOrPastUpperBand(latestPrice, upper)) {
-      const optionsChain = await getLatestOptionChain(symbol);
-      const topOutOfTheMoneyCalls = optionsChain.calls
+      const optionsChain = await optionsProvider.getLatestOptionChain(symbol);
+      const top10OutOfTheMoneyCalls = optionsChain.calls
         .filter((call) => {
           return call.strike > latestPrice;
         })
         .slice(0, 10);
-      const optionsTable = buildOptionsTable(topOutOfTheMoneyCalls);
+      const optionsTable = buildOptionsTable(top10OutOfTheMoneyCalls);
 
       results.push({
         type: 'SELL_CALL',
@@ -115,13 +120,13 @@ export const checkBollingerBands = async (bars: Map<string, Bar[]>, latestPrices
         optionsTable: optionsTable,
       });
     } else if (isNearOrPastLowerBand(latestPrice, lower)) {
-      const optionsChain = await getLatestOptionChain(symbol);
-      const topOutOfTheMoneyPuts = optionsChain.puts
+      const optionsChain = await optionsProvider.getLatestOptionChain(symbol);
+      const top10OutOfTheMoneyPuts = optionsChain.puts
         .filter((put) => {
           return put.strike < latestPrice;
         })
         .slice(0, 10);
-      const optionsTable = buildOptionsTable(topOutOfTheMoneyPuts);
+      const optionsTable = buildOptionsTable(top10OutOfTheMoneyPuts);
 
       results.push({
         type: 'SELL_PUT',

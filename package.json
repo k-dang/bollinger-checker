@@ -15,6 +15,7 @@
     "alpaca": "tsx --env-file=.env testscripts/test-alpaca.ts",
     "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts",
     "rsi": "tsx --env-file=.env testscripts/test-rsi.ts",
+    "providers": "tsx --env-file=.env testscripts/test-providers.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest"
   },

@@ -57,6 +57,16 @@ Run test scripts for yfinance setup
 pnpm yahoo
 ```
 
+## Adding environment variables
+
+To add a new environment variable, update the [wrangler config](https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables)
+
+Then run type gen
+
+```
+pnpm cf-typegen
+```
+
 ## Deployment
 
 Deployment is handled via cloudflare integration with github, so any merges into `main` will kick off a deployment to both `dev` & `prod` workers
