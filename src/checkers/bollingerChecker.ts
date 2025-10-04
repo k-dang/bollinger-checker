@@ -1,5 +1,6 @@
 import { BollingerBands } from 'trading-signals';
 import { IOptionsProvider } from '../core/providers/OptionsProvider';
+import { buildOptionsTable, optionsTableTitle } from '../utils/optionsTable';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
@@ -54,30 +55,6 @@ const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Record<strin
   }
 
   return results;
-};
-
-interface OptionChainRow {
-  strike: number;
-  lastPrice: number;
-  bid?: number;
-  ask?: number;
-  impliedVolatility?: number;
-}
-
-const optionsTableTitle = ['strike', 'lastPrice', 'bid', 'ask', 'iv'].join(' | ');
-
-export const buildOptionsTable = (chains: OptionChainRow[]) => {
-  return chains
-    .map((chain) => {
-      const strike = chain.strike.toFixed(2);
-      const lastPrice = chain.lastPrice.toFixed(2);
-      const bid = chain.bid?.toFixed(2) ?? '0';
-      const ask = chain.ask?.toFixed(2) ?? '0';
-      const impliedVolatility = chain.impliedVolatility?.toFixed(6) ?? '0';
-      const values = [strike, lastPrice, bid, ask, impliedVolatility];
-      return values.join(' | ');
-    })
-    .join('\n');
 };
 
 export interface BandCheckResult {

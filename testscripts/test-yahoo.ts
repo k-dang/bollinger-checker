@@ -12,7 +12,6 @@ async function testYahoo() {
     .slice(0, 10);
   console.table(validChains);
 
-
   const res = validChains.map((chain) => {
     const strike = chain.strike.toFixed(2);
     const lastPrice = chain.lastPrice.toFixed(2);

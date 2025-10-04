@@ -1,6 +1,7 @@
 # AGENTS.md - Development Guidelines for AI Coding Agents
 
 ## Build/Lint/Test Commands
+
 - **Development**: `pnpm dev` (starts local Cloudflare Worker server)
 - **Format code**: `pnpm format` (runs Prettier)
 - **Format check**: `pnpm format:check` (checks Prettier compliance)
@@ -11,6 +12,7 @@
 - **Test**: `pnpm run test` (runs vitest)
 
 ## Code Style Guidelines
+
 - **ESM modules**: Use ES modules (`import`/`export`), project is `"type": "module"`
 - **TypeScript**: Strict TypeScript enabled - always use proper types, no `any`
 - **Formatting**: Prettier with 140 print width, single quotes, semicolons required

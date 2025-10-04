@@ -1,5 +1,5 @@
 import { YahooOptionsProvider } from '../src/core/providers/OptionsProvider';
-import { buildOptionsTable } from '../src/checkers/bollingerChecker';
+import { buildOptionsTable } from '../src/utils/optionsTable';
 
 const yahooOptionsProvider = new YahooOptionsProvider();
 
@@ -10,7 +10,6 @@ const topOutOfTheMoneyCalls = optionsChain.calls
     return call.strike > latestPrice;
   })
   .slice(0, 10);
-
 
 const optionsTable = buildOptionsTable(topOutOfTheMoneyCalls);
 console.log(optionsTable);
