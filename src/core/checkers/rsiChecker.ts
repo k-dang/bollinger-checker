@@ -59,8 +59,6 @@ export const calculateRSI = (
       signal,
       status: isOverbought ? '🔴 OVERBOUGHT' : isOversold ? '🟢 OVERSOLD' : '⚪ NEUTRAL',
     });
-
-    // console.log(`[RSI] ${symbol}: ${rsiNumber.toFixed(2)} (${signal})`);
   }
 
   return results;

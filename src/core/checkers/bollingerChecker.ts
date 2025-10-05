@@ -89,7 +89,7 @@ export const checkBollingerBands = async (
         type: 'SELL_PUT',
         symbol,
         resultTitle: 'Passed Lower band or within 1%',
-        resultValue: `Current: ${latestPrice} \n Lower: ${lower}`,
+        resultValue: `Current: ${latestPrice.toFixed(2)} \n Lower: ${lower.toFixed(2)}`,
         optionsTableTitle: optionsTableTitle,
         optionsTable: optionsTable,
       });
