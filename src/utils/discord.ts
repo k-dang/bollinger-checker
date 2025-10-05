@@ -1,5 +1,5 @@
-import { BandCheckResult } from '../checkers/bollingerChecker';
-import { RSIResult } from '../checkers/rsiChecker';
+import { BandCheckResult } from '../core/types/technicals';
+import { RSIResult } from '../core/checkers/rsiChecker';
 import { delay } from './time';
 
 export interface Field {
@@ -58,6 +58,7 @@ export async function notifyDiscordWithResults(webhookUrl: string, results: Full
     { name: `RSI: ${result.rsiResult?.rsi}`, value: result.rsiResult?.status ?? '' },
     { name: result.bollingerResult.optionsTableTitle, value: result.bollingerResult.optionsTable },
   ]);
+
   let successCount = 0;
   let failureCount = 0;
   for (const fields of discordFieldsList) {

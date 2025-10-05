@@ -1,14 +1,5 @@
 import { RSI, MovingAverageTypes, WSMA } from 'trading-signals';
-import { Bar } from './bollingerChecker';
-
-export interface RSIResult {
-  symbol: string;
-  rsi: number;
-  isOverbought: boolean; // RSI > 70
-  isOversold: boolean; // RSI < 30
-  signal: 'BUY' | 'SELL' | 'NEUTRAL';
-  status: string; // overbought, oversold, neutral
-}
+import { Bar, RSIResult } from '../types/technicals';
 
 /**
  * Calculate RSI values for multiple tickers using historical price data
@@ -25,7 +16,7 @@ export const calculateRSI = (
   overboughtThreshold = 70,
   oversoldThreshold = 30,
   smoothingIndicator: MovingAverageTypes = WSMA,
-): Map<string, RSIResult> => {
+) => {
   const results = new Map<string, RSIResult>();
 
   for (const [symbol, barData] of bars.entries()) {

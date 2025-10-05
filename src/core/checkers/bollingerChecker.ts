@@ -1,6 +1,7 @@
 import { BollingerBands } from 'trading-signals';
-import { IOptionsProvider } from '../core/providers/OptionsProvider';
-import { buildOptionsTable, optionsTableTitle } from '../utils/optionsTable';
+import { IOptionsProvider } from '../providers/OptionsProvider';
+import { buildOptionsTable, optionsTableTitle } from '../../utils/optionsTable';
+import { Bar, BandCheckResult, BollingerBandResult } from '../types/technicals';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
@@ -24,19 +25,7 @@ export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thr
   return price <= upperThreshold;
 };
 
-export interface Bar {
-  Timestamp: string; // ISO 8601 format
-  ClosePrice: number;
-  Symbol: string;
-}
-
-interface BollingerBandResult {
-  upper: number;
-  middle: number;
-  lower: number;
-}
-
-const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Record<string, BollingerBandResult>> => {
+const getBollingerBands = async (bars: Map<string, Bar[]>) => {
   const results: Record<string, BollingerBandResult> = {};
 
   for (const [symbol, value] of bars.entries()) {
@@ -56,15 +45,6 @@ const getBollingerBands = async (bars: Map<string, Bar[]>): Promise<Record<strin
 
   return results;
 };
-
-export interface BandCheckResult {
-  type: 'SELL_CALL' | 'SELL_PUT';
-  symbol: string;
-  resultTitle: string; // Passed Upper band | Passed Lower band
-  resultValue: string; // Current x | Upper x | Lower x
-  optionsTableTitle: string;
-  optionsTable: string;
-}
 
 export const checkBollingerBands = async (
   bars: Map<string, Bar[]>,

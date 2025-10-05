@@ -32,4 +32,6 @@ export const tickers = [
   'PLTR',
   'LLY',
   'HOOD',
+  'MSTR',
+  'COST',
 ];

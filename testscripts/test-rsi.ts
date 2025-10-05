@@ -1,4 +1,4 @@
-import { calculateRSI } from '../src/checkers/rsiChecker';
+import { calculateRSI } from '../src/core/checkers/rsiChecker';
 import { AlpacaClient } from '../src/utils/alpaca';
 
 const apiKey = process.env.ALPACA_API_KEY;
