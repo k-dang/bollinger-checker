@@ -6,6 +6,7 @@ import {
   evaluateBollingerSignals,
   filterOutOfTheMoneyCallOptions,
   filterOutOfTheMoneyPutOptions,
+  ILogger,
 } from './bollingerChecker';
 import { Bar } from '@/core/types/technicals';
 import { IOptionsProvider } from '@/core/providers/OptionsProvider';
@@ -226,6 +227,11 @@ describe('evaluateBollingerSignals', () => {
     return { bars, latestPrices };
   };
 
+  // Mock logger to suppress console output in tests
+  const mockLogger: ILogger = {
+    log: vi.fn(),
+  };
+
   test('should return SELL_CALL result when price is near upper band', async () => {
     const { bars, latestPrices } = setupTestData('TEST', 110);
 
@@ -241,7 +247,7 @@ describe('evaluateBollingerSignals', () => {
       ],
     );
 
-    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider);
+    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider, mockLogger);
 
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
@@ -270,7 +276,7 @@ describe('evaluateBollingerSignals', () => {
       ],
     );
 
-    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider);
+    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider, mockLogger);
 
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
@@ -303,7 +309,7 @@ describe('evaluateBollingerSignals', () => {
 
     const mockOptionsProvider = createMockOptionsProvider();
 
-    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider);
+    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider, mockLogger);
 
     expect(result).toHaveLength(0);
   });

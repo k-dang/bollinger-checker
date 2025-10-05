@@ -5,6 +5,20 @@ import { Bar, BandCheckResult, BollingerBandResult } from '@/core/types/technica
 import { OptionContract } from '@/core/types/options';
 
 /**
+ * Logger interface for dependency inversion
+ */
+export interface ILogger {
+  log: (message: string) => void;
+}
+
+/**
+ * Default console logger implementation
+ */
+export const consoleLogger: ILogger = {
+  log: (message: string) => console.log(`[BollingerChecker][date(${new Date().toISOString()})]: ${message}`),
+};
+
+/**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
  * @param price - The current price.
  * @param upperBandPrice - The upper Bollinger Band price.
@@ -135,8 +149,9 @@ const evaluateSymbolSignal = async (
 /**
  * Evaluates Bollinger Band signals for multiple symbols and returns trading opportunities
  * @param bars - Historical price data for each symbol
- * @param latestPrices - Current prices for each symbol
+ * @param latestPrices - Current price for each symbol
  * @param optionsProvider - Provider for fetching options chain data
+ * @param logger - Optional logger for debug/info messages (defaults to console logger)
  * @returns Array of band check results with trading signals
  * @throws Error if Bollinger Bands cannot be calculated
  */
@@ -144,6 +159,7 @@ export const evaluateBollingerSignals = async (
   bars: Map<string, Bar[]>,
   latestPrices: Record<string, number>,
   optionsProvider: IOptionsProvider,
+  logger: ILogger = consoleLogger,
 ): Promise<BandCheckResult[]> => {
   // Calculate Bollinger Bands for all symbols
   const bands = await getBollingerBands(bars);
@@ -160,9 +176,9 @@ export const evaluateBollingerSignals = async (
       results.push(result);
     }
 
-    console.log(`[BollingerChecker][date(${new Date().toISOString()})]: Finished checking ${symbol}`);
+    logger.log(`Finished checking ${symbol}`);
   }
 
-  console.log(`[BollingerChecker][date(${new Date().toISOString()})]: Total results: ${results.length}`);
+  logger.log(`Total results: ${results.length}`);
   return results;
 };
