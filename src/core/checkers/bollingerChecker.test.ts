@@ -1,6 +1,8 @@
-import { expect, test, describe } from 'vitest';
-import { isNearOrPastUpperBand, isNearOrPastLowerBand, getBollingerBands } from './bollingerChecker';
+import { expect, test, describe, vi } from 'vitest';
+import { isNearOrPastUpperBand, isNearOrPastLowerBand, getBollingerBands, checkBollingerBands } from './bollingerChecker';
 import { Bar } from '@/core/types/technicals';
+import { IOptionsProvider } from '@/core/providers/OptionsProvider';
+import { OptionContract } from '@/core/types/options';
 
 describe('isNearOrPastUpperBand', () => {
   describe('default threshold', () => {
@@ -75,25 +77,25 @@ describe('isNearOrPastLowerBand', () => {
 describe('getBollingerBands', () => {
   test('should calculate Bollinger Bands for multiple symbols', async () => {
     const bars = new Map<string, Bar[]>();
-    
+
     // Create test data for two symbols
     const symbol1Bars: Bar[] = [];
     const symbol2Bars: Bar[] = [];
-    
+
     for (let i = 0; i < 25; i++) {
       symbol1Bars.push({
         Timestamp: new Date(2024, 0, i + 1).toISOString(),
         ClosePrice: 50 + i * 0.5, // Rising trend
         Symbol: 'SYMBOL1',
       });
-      
+
       symbol2Bars.push({
         Timestamp: new Date(2024, 0, i + 1).toISOString(),
         ClosePrice: 200 - i * 0.3, // Falling trend
         Symbol: 'SYMBOL2',
       });
     }
-    
+
     bars.set('SYMBOL1', symbol1Bars);
     bars.set('SYMBOL2', symbol2Bars);
 
@@ -102,7 +104,7 @@ describe('getBollingerBands', () => {
     expect(Object.keys(result)).toHaveLength(2);
     expect(result).toHaveProperty('SYMBOL1');
     expect(result).toHaveProperty('SYMBOL2');
-    
+
     // Both symbols should have valid Bollinger Band results
     expect(result.SYMBOL1.upper).toBeGreaterThan(result.SYMBOL1.middle);
     expect(result.SYMBOL1.middle).toBeGreaterThan(result.SYMBOL1.lower);
@@ -113,7 +115,7 @@ describe('getBollingerBands', () => {
   test('should handle empty bars map', async () => {
     const bars = new Map<string, Bar[]>();
     const result = await getBollingerBands(bars);
-    
+
     expect(result).toEqual({});
   });
 
@@ -132,5 +134,92 @@ describe('getBollingerBands', () => {
 
     // This should throw an error since BollingerBands requires at least 20 data points
     await expect(getBollingerBands(bars)).rejects.toThrow();
+  });
+});
+
+describe('checkBollingerBands', () => {
+  // Helper function to create test bars
+  const createTestBars = (symbol: string, priceVariation = 5): Bar[] => {
+    const bars: Bar[] = [];
+    for (let i = 0; i < 25; i++) {
+      bars.push({
+        Timestamp: new Date(2024, 0, i + 1).toISOString(),
+        ClosePrice: 100 + Math.sin(i * 0.1) * priceVariation,
+        Symbol: symbol,
+      });
+    }
+    return bars;
+  };
+
+  // Helper function to create mock options provider
+  const createMockOptionsProvider = (calls: OptionContract[] = [], puts: OptionContract[] = []): IOptionsProvider => ({
+    getLatestOptionChain: vi.fn().mockResolvedValue({ calls, puts }),
+  });
+
+  // Helper function to create test data setup
+  const setupTestData = (symbol: string, latestPrice: number, priceVariation = 5) => {
+    const testBars = createTestBars(symbol, priceVariation);
+    const bars = new Map<string, Bar[]>();
+    bars.set(symbol, testBars);
+    const latestPrices = { [symbol]: latestPrice };
+    return { bars, latestPrices };
+  };
+
+  test('should return SELL_CALL result when price is near upper band', async () => {
+    const { bars, latestPrices } = setupTestData('TEST', 110);
+
+    const mockOptionsProvider = createMockOptionsProvider(
+      [
+        { strike: 115, lastPrice: 1.5, bid: 1.4, ask: 1.6 },
+        { strike: 120, lastPrice: 1.0, bid: 0.9, ask: 1.1 },
+        { strike: 125, lastPrice: 0.8, bid: 0.7, ask: 0.9 },
+      ],
+      [
+        { strike: 90, lastPrice: 0.5, bid: 0.4, ask: 0.6 },
+        { strike: 85, lastPrice: 0.3, bid: 0.2, ask: 0.4 },
+      ],
+    );
+
+    const result = await checkBollingerBands(bars, latestPrices, mockOptionsProvider);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      type: 'SELL_CALL',
+      symbol: 'TEST',
+      resultTitle: 'Passed Upper band or within 1%',
+    });
+    expect(result[0].resultValue).toContain('Current: 110.00');
+    expect(result[0].resultValue).toContain('Upper:');
+    expect(result[0].optionsTable).toBeDefined();
+    expect(result[0].optionsTableTitle).toBeDefined();
+  });
+
+  test('should return SELL_PUT result when price is near lower band', async () => {
+    const { bars, latestPrices } = setupTestData('TEST', 90);
+
+    const mockOptionsProvider = createMockOptionsProvider(
+      [
+        { strike: 115, lastPrice: 1.5, bid: 1.4, ask: 1.6 },
+        { strike: 120, lastPrice: 1.0, bid: 0.9, ask: 1.1 },
+      ],
+      [
+        { strike: 85, lastPrice: 0.5, bid: 0.4, ask: 0.6 },
+        { strike: 80, lastPrice: 0.3, bid: 0.2, ask: 0.4 },
+        { strike: 75, lastPrice: 0.2, bid: 0.1, ask: 0.3 },
+      ],
+    );
+
+    const result = await checkBollingerBands(bars, latestPrices, mockOptionsProvider);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      type: 'SELL_PUT',
+      symbol: 'TEST',
+      resultTitle: 'Passed Lower band or within 1%',
+    });
+    expect(result[0].resultValue).toContain('Current: 90');
+    expect(result[0].resultValue).toContain('Lower:');
+    expect(result[0].optionsTable).toBeDefined();
+    expect(result[0].optionsTableTitle).toBeDefined();
   });
 });
