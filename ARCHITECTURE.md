@@ -109,14 +109,14 @@ graph TD
 
 ### 📈 Technical Analysis
 
-- **Bollinger Bands**: 20-period moving average with 2 standard deviations
-- **Threshold Detection**: 1% proximity to band edges
+- **Bollinger Bands**: 20-period moving average with 2 standard deviations (default)
+- **Threshold Detection**: 1% proximity to band edges (default)
 - **Signal Generation**: Upper band breach = Sell Calls, Lower band breach = Sell Puts
 
 ### 📊 Data Integration
 
 - **Alpaca API**: Historical price data (35 days) and real-time quotes
-- **Yahoo Finance**: Options chain data for trading opportunities with proper logging configuration
+- **Yahoo Finance**: Options chain data for trading opportunities
 - **Multi-source reliability**: Combines different data providers
 
 ### 🔔 Smart Notifications
@@ -125,7 +125,31 @@ graph TD
 - **Rate Limiting**: 500ms delay between webhook calls to prevent Discord API limits
 - **Error Handling**: Robust error handling with success/failure tracking for each notification
 - **Conditional Messaging**: Different messages for signals vs. no activity
-- **Options Data**: Top 10 out-of-the-money options with strike, price, bid, ask, and IV
+- **Options Data**: Top 10 out-of-the-money options with strike, price, bid, ask, and IV (default limit)
+
+## Logging and Observability
+
+### Logger Abstraction
+
+- The checker uses a simple logger abstraction (`ILogger`) to log progress and results.
+- Default implementation (`consoleLogger`) prefixes messages with `[BollingerChecker][date(ISO8601)]` and writes to `console.log`.
+- Logs during evaluation:
+  - Per-symbol: `Finished checking {SYMBOL}`
+  - Summary: `Total results: {N}`
+
+### Pluggable Logging
+
+- `evaluateBollingerSignals(bars, latestPrices, optionsProvider, logger?)` accepts an optional `logger` argument.
+- Any object implementing `ILogger` (`{ log: (message: string) => void }`) can be injected (e.g., structured logger, no-op logger).
+- If omitted, `consoleLogger` is used by default.
+
+## Defaults and Tunables
+
+- **Bollinger Period**: 20 (passed to the bands calculator; exposed via `getBollingerBands(bars, period = 20)`).
+- **Threshold**: 1% proximity to upper/lower bands for signal detection (within `isNearOrPastUpperBand`/`isNearOrPastLowerBand`).
+- **Options Limit**: 10 top out-of-the-money options (calls above price, puts below price).
+
+These defaults are encoded in code for simplicity and can be adjusted in future via configuration if needed.
 
 ### 🎯 Monitored Stocks
 
