@@ -1,5 +1,5 @@
-import { getLatestOptionChain } from '../../utils/yf';
-import { OptionChain } from '../types/options';
+import { getLatestOptionChain } from '@/utils/yf';
+import { OptionChain } from '@/core/types/options';
 
 export interface IOptionsProvider {
   getLatestOptionChain(symbol: string): Promise<OptionChain>;

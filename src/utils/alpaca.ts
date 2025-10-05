@@ -1,4 +1,4 @@
-import { Bar } from '../core/types/technicals';
+import { Bar } from '@/core/types/technicals';
 
 interface AlpacaBarResponse {
   bars: Record<

@@ -15,12 +15,12 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { AlpacaClient } from './utils/alpaca';
-import { checkBollingerBands } from './core/checkers/bollingerChecker';
-import { sendDiscordWebhook, notifyDiscordWithResults } from './utils/discord';
-import { tickers as tickerSymbols } from './data/tickers';
-import { calculateRSI } from './core/checkers/rsiChecker';
-import { YahooOptionsProvider } from './core/providers/OptionsProvider';
+import { AlpacaClient } from '@/utils/alpaca';
+import { checkBollingerBands } from '@/core/checkers/bollingerChecker';
+import { sendDiscordWebhook, notifyDiscordWithResults } from '@/utils/discord';
+import { tickerSymbols } from '@/data/tickers';
+import { calculateRSI } from '@/core/checkers/rsiChecker';
+import { YahooOptionsProvider } from '@/core/providers/OptionsProvider';
 
 export default {
   async fetch(req) {
@@ -34,6 +34,7 @@ export default {
     try {
       const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
 
+      // i/o tasks
       const barsTask = alpacaClient.getBars(tickerSymbols);
       const latestPricesTask = alpacaClient.getLatestPrices(tickerSymbols);
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
@@ -59,7 +60,7 @@ export default {
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 
-      console.log(`trigger fired at ${event.cron}`);
+      console.log(`Trigger fired at ${event.cron}`);
     } catch (err) {
       console.error('Scheduled event failed:', err);
     }

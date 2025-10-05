@@ -1,5 +1,5 @@
 import { RSI, MovingAverageTypes, WSMA } from 'trading-signals';
-import { Bar, RSIResult } from '../types/technicals';
+import { Bar, RSIResult } from '@/core/types/technicals';
 
 /**
  * Calculate RSI values for multiple tickers using historical price data

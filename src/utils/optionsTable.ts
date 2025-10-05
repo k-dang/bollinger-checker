@@ -1,4 +1,4 @@
-import { OptionContract } from '../core/types/options';
+import { OptionContract } from '@/core/types/options';
 
 export const optionsTableTitle = ['strike', 'lastPrice', 'bid', 'ask', 'iv'].join(' | ');
 

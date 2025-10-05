@@ -1,6 +1,5 @@
-import { BandCheckResult } from '../core/types/technicals';
-import { RSIResult } from '../core/checkers/rsiChecker';
-import { delay } from './time';
+import { BandCheckResult, RSIResult } from '@/core/types/technicals';
+import { delay } from '@/utils/time';
 
 export interface Field {
   name: string;

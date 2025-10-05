@@ -1,7 +1,7 @@
 import { BollingerBands } from 'trading-signals';
-import { IOptionsProvider } from '../providers/OptionsProvider';
-import { buildOptionsTable, optionsTableTitle } from '../../utils/optionsTable';
-import { Bar, BandCheckResult, BollingerBandResult } from '../types/technicals';
+import { IOptionsProvider } from '@/core/providers/OptionsProvider';
+import { buildOptionsTable, optionsTableTitle } from '@/utils/optionsTable';
+import { Bar, BandCheckResult, BollingerBandResult } from '@/core/types/technicals';
 
 /**
  * Returns true if the price is above the upper band, or within a given percentage threshold of the upper band.
