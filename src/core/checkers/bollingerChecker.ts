@@ -25,7 +25,7 @@ export const isNearOrPastLowerBand = (price: number, lowerBandPrice: number, thr
   return price <= upperThreshold;
 };
 
-const getBollingerBands = async (bars: Map<string, Bar[]>) => {
+export const getBollingerBands = async (bars: Map<string, Bar[]>) => {
   const results: Record<string, BollingerBandResult> = {};
 
   for (const [symbol, value] of bars.entries()) {
