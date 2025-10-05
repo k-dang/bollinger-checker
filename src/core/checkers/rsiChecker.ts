@@ -10,7 +10,7 @@ import { Bar, RSIResult } from '@/core/types/technicals';
  * @param smoothingIndicator - Smoothing indicator to use for RSI calculation (default: WSMA)
  * @returns Map of RSI results where key is symbol and value is RSI result
  */
-export const calculateRSI = (
+export const evaluateRsiSignals = (
   bars: Map<string, Bar[]>,
   period = 14,
   overboughtThreshold = 70,

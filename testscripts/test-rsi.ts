@@ -1,4 +1,4 @@
-import { calculateRSI } from '../src/core/checkers/rsiChecker';
+import { evaluateRsiSignals } from '../src/core/checkers/rsiChecker';
 import { AlpacaClient } from '../src/utils/alpaca';
 
 const apiKey = process.env.ALPACA_API_KEY;
@@ -15,7 +15,7 @@ console.log('🔍 Testing RSI Calculation \n');
 console.log(`📊 Calculating RSI for ${tickers.length} tickers...\n`);
 
 // Calculate RSI with default parameters (14-period, 70/30 thresholds)
-const rsiResults = calculateRSI(bars);
+const rsiResults = evaluateRsiSignals(bars);
 
 console.log('\n📈 RSI Results:');
 console.log('================');

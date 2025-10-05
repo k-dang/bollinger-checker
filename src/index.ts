@@ -16,10 +16,10 @@
  */
 
 import { AlpacaClient } from '@/utils/alpaca';
-import { checkBollingerBands } from '@/core/checkers/bollingerChecker';
+import { evaluateBollingerSignals } from '@/core/checkers/bollingerChecker';
 import { sendDiscordWebhook, notifyDiscordWithResults } from '@/utils/discord';
 import { tickerSymbols } from '@/data/tickers';
-import { calculateRSI } from '@/core/checkers/rsiChecker';
+import { evaluateRsiSignals } from '@/core/checkers/rsiChecker';
 import { YahooOptionsProvider } from '@/core/providers/OptionsProvider';
 
 export default {
@@ -39,10 +39,10 @@ export default {
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
       // check bollinger bands
-      const results = await checkBollingerBands(bars, latestPrices, new YahooOptionsProvider());
+      const results = await evaluateBollingerSignals(bars, latestPrices, new YahooOptionsProvider());
       // check rsi
-      const rsiResults = calculateRSI(bars);
-      
+      const rsiResults = evaluateRsiSignals(bars);
+
       // combine results
       const extendedResults = results.map((result) => {
         const rsi = rsiResults.get(result.symbol);

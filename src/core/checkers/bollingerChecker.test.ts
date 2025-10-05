@@ -1,5 +1,12 @@
 import { expect, test, describe, vi } from 'vitest';
-import { isNearOrPastUpperBand, isNearOrPastLowerBand, getBollingerBands, checkBollingerBands } from './bollingerChecker';
+import {
+  isNearOrPastUpperBand,
+  isNearOrPastLowerBand,
+  getBollingerBands,
+  evaluateBollingerSignals,
+  filterOutOfTheMoneyCallOptions,
+  filterOutOfTheMoneyPutOptions,
+} from './bollingerChecker';
 import { Bar } from '@/core/types/technicals';
 import { IOptionsProvider } from '@/core/providers/OptionsProvider';
 import { OptionContract } from '@/core/types/options';
@@ -137,7 +144,61 @@ describe('getBollingerBands', () => {
   });
 });
 
-describe('checkBollingerBands', () => {
+describe('filterOutOfTheMoneyCallOptions', () => {
+  const mockCalls: OptionContract[] = [
+    { strike: 95, lastPrice: 2.0, bid: 1.9, ask: 2.1 },
+    { strike: 100, lastPrice: 1.5, bid: 1.4, ask: 1.6 },
+    { strike: 105, lastPrice: 1.0, bid: 0.9, ask: 1.1 },
+    { strike: 110, lastPrice: 0.5, bid: 0.4, ask: 0.6 },
+  ];
+
+  test('should filter calls with strike above current price', () => {
+    const result = filterOutOfTheMoneyCallOptions(mockCalls, 100, 10);
+    expect(result).toHaveLength(2);
+    expect(result[0].strike).toBe(105);
+    expect(result[1].strike).toBe(110);
+  });
+
+  test('should limit results to specified number', () => {
+    const result = filterOutOfTheMoneyCallOptions(mockCalls, 100, 1);
+    expect(result).toHaveLength(1);
+    expect(result[0].strike).toBe(105);
+  });
+
+  test('should return empty array if no calls above price', () => {
+    const result = filterOutOfTheMoneyCallOptions(mockCalls, 120, 10);
+    expect(result).toHaveLength(0);
+  });
+});
+
+describe('filterOutOfTheMoneyPutOptions', () => {
+  const mockPuts: OptionContract[] = [
+    { strike: 110, lastPrice: 0.5, bid: 0.4, ask: 0.6 },
+    { strike: 105, lastPrice: 1.0, bid: 0.9, ask: 1.1 },
+    { strike: 100, lastPrice: 1.5, bid: 1.4, ask: 1.6 },
+    { strike: 95, lastPrice: 2.0, bid: 1.9, ask: 2.1 },
+  ];
+
+  test('should filter puts with strike below current price', () => {
+    const result = filterOutOfTheMoneyPutOptions(mockPuts, 105, 10);
+    expect(result).toHaveLength(2);
+    expect(result[0].strike).toBe(100);
+    expect(result[1].strike).toBe(95);
+  });
+
+  test('should limit results to specified number', () => {
+    const result = filterOutOfTheMoneyPutOptions(mockPuts, 105, 1);
+    expect(result).toHaveLength(1);
+    expect(result[0].strike).toBe(100);
+  });
+
+  test('should return empty array if no puts below price', () => {
+    const result = filterOutOfTheMoneyPutOptions(mockPuts, 90, 10);
+    expect(result).toHaveLength(0);
+  });
+});
+
+describe('evaluateBollingerSignals', () => {
   // Helper function to create test bars
   const createTestBars = (symbol: string, priceVariation = 5): Bar[] => {
     const bars: Bar[] = [];
@@ -180,7 +241,7 @@ describe('checkBollingerBands', () => {
       ],
     );
 
-    const result = await checkBollingerBands(bars, latestPrices, mockOptionsProvider);
+    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider);
 
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
@@ -209,7 +270,7 @@ describe('checkBollingerBands', () => {
       ],
     );
 
-    const result = await checkBollingerBands(bars, latestPrices, mockOptionsProvider);
+    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider);
 
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
@@ -221,5 +282,29 @@ describe('checkBollingerBands', () => {
     expect(result[0].resultValue).toContain('Lower:');
     expect(result[0].optionsTable).toBeDefined();
     expect(result[0].optionsTableTitle).toBeDefined();
+  });
+
+  test('should return empty array when price is in middle range', async () => {
+    // Create bars with moderate oscillation
+    const testBars: Bar[] = [];
+    for (let i = 0; i < 25; i++) {
+      testBars.push({
+        Timestamp: new Date(2024, 0, i + 1).toISOString(),
+        ClosePrice: 100 + Math.sin(i * 0.3) * 2, // Oscillates with less variation
+        Symbol: 'TEST',
+      });
+    }
+
+    const bars = new Map<string, Bar[]>();
+    bars.set('TEST', testBars);
+
+    // Set current price at exactly 100, which should be in the middle range
+    const latestPrices = { TEST: 100 };
+
+    const mockOptionsProvider = createMockOptionsProvider();
+
+    const result = await evaluateBollingerSignals(bars, latestPrices, mockOptionsProvider);
+
+    expect(result).toHaveLength(0);
   });
 });
