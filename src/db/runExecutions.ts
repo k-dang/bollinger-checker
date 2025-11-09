@@ -10,26 +10,35 @@ interface LogRunExecutionParams {
   durationMs: number;
   tickersChecked: number;
   cronTrigger?: string;
+  bollingerSignalsFound?: number;
+  rsiSignalsFound?: number;
 }
 
-export async function logRunExecution(params: LogRunExecutionParams): Promise<void> {
-  const { databaseUrl, startedAt, completedAt, status, durationMs, tickersChecked, cronTrigger } = params;
+export async function logRunExecution(params: LogRunExecutionParams): Promise<number> {
+  const { databaseUrl, startedAt, completedAt, status, durationMs, tickersChecked, cronTrigger, bollingerSignalsFound, rsiSignalsFound } =
+    params;
 
   try {
     const client = postgres(databaseUrl);
     const db = drizzle(client);
 
-    await db.insert(runExecutions).values({
-      startedAt,
-      completedAt,
-      status,
-      durationMs,
-      tickersChecked,
-      cronTrigger,
-    });
+    const result = await db
+      .insert(runExecutions)
+      .values({
+        startedAt,
+        completedAt,
+        status,
+        durationMs,
+        tickersChecked,
+        cronTrigger,
+        bollingerSignalsFound,
+        rsiSignalsFound,
+      })
+      .returning({ id: runExecutions.id });
 
     await client.end();
     console.log(`[RunExecution] Record inserted: status=${status}, duration=${durationMs}ms`);
+    return result[0].id;
   } catch (dbErr) {
     console.error('[RunExecution] Failed to insert record:', dbErr);
     throw dbErr;
