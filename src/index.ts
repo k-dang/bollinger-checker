@@ -21,6 +21,7 @@ import { sendDiscordWebhook, notifyDiscordWithResults } from '@/utils/discord';
 import { tickerSymbols } from '@/data/tickers';
 import { evaluateRsiSignals } from '@/core/checkers/rsiChecker';
 import { YahooOptionsProvider } from '@/core/providers/OptionsProvider';
+import { logRunExecution } from '@/db/runExecutions';
 
 export default {
   async fetch(req) {
@@ -31,6 +32,9 @@ export default {
   },
 
   async scheduled(event, env): Promise<void> {
+    const startTime = new Date();
+    let status: 'success' | 'failed' = 'success';
+
     try {
       const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
       const barsTask = alpacaClient.getBars(tickerSymbols);
@@ -60,7 +64,25 @@ export default {
 
       console.log(`Trigger fired at ${event.cron}`);
     } catch (err) {
+      status = 'failed';
       console.error('Scheduled event failed:', err);
+    } finally {
+      // Insert execution record
+      try {
+        const completedTime = new Date();
+        const durationMs = completedTime.getTime() - startTime.getTime();
+        await logRunExecution({
+          databaseUrl: env.DATABASE_URL,
+          startedAt: startTime,
+          completedAt: completedTime,
+          status,
+          durationMs,
+          tickersChecked: tickerSymbols.length,
+          cronTrigger: event.cron,
+        });
+      } catch {
+        // Error already logged in logRunExecution
+      }
     }
   },
 } satisfies ExportedHandler<Env>;

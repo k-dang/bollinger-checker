@@ -16,12 +16,14 @@
     "yahoo": "tsx --env-file=.env testscripts/test-yahoo.ts",
     "rsi": "tsx --env-file=.env testscripts/test-rsi.ts",
     "providers": "tsx --env-file=.env testscripts/test-providers.ts",
+    "db": "tsx --env-file=.env testscripts/test-db.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.0",
+    "drizzle-kit": "^0.31.6",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
     "tsx": "^4.20.6",
@@ -31,6 +33,8 @@
     "wrangler": "^4.46.0"
   },
   "dependencies": {
+    "drizzle-orm": "^0.44.7",
+    "postgres": "^3.4.7",
     "trading-signals": "^7.1.0",
     "yahoo-finance2": "^3.10.1"
   }

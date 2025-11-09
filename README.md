@@ -97,6 +97,16 @@ Adding secrets to cloudflare workers
 npx wrangler secret put secret-name --env=""
 ```
 
+Will prompt in the CLI what the secret value should be
+
+## Database (Supabase)
+
+Push table changes
+
+```
+npx drizzle-kit push
+```
+
 ## TODO
 
 - [x] Setup cloudflare github connection
