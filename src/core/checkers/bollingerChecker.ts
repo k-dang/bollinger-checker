@@ -59,9 +59,9 @@ export const getBollingerBands = async (bars: Map<string, Bar[]>, period = 20): 
 
     const { middle, upper, lower } = bb.getResultOrThrow();
     results[symbol] = {
-      upper: upper.toNumber(),
-      middle: middle.toNumber(),
-      lower: lower.toNumber(),
+      upper: upper,
+      middle: middle,
+      lower: lower,
     };
   }
 

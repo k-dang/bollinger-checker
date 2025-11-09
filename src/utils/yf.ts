@@ -1,7 +1,7 @@
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
 
-yahooFinance.suppressNotices(['yahooSurvey']);
-yahooFinance.setGlobalConfig({
+const yahooFinance = new YahooFinance({
+  suppressNotices: ['yahooSurvey'],
   logger: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     info: (...args: any[]) => console.log('[YahooFinance] info', ...args),
@@ -11,6 +11,8 @@ yahooFinance.setGlobalConfig({
     error: (...args: any[]) => console.error('[YahooFinance] error', ...args),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     debug: (...args: any[]) => console.log('[YahooFinance] debug', ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dir: (...args: any[]) => console.dir('[YahooFinance] dir', ...args),
   },
 });
 

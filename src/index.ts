@@ -32,7 +32,6 @@ export default {
 
   async scheduled(event, env): Promise<void> {
     try {
-      // i/o tasks
       const alpacaClient = new AlpacaClient(env.ALPACA_API_KEY, env.ALPACA_API_SECRET);
       const barsTask = alpacaClient.getBars(tickerSymbols);
       const latestPricesTask = alpacaClient.getLatestPrices(tickerSymbols);

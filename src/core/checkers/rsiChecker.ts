@@ -1,4 +1,4 @@
-import { RSI, MovingAverageTypes, WSMA } from 'trading-signals';
+import { RSI, WSMA } from 'trading-signals';
 import { Bar, RSIResult } from '@/core/types/technicals';
 
 /**
@@ -15,7 +15,7 @@ export const evaluateRsiSignals = (
   period = 14,
   overboughtThreshold = 70,
   oversoldThreshold = 30,
-  smoothingIndicator: MovingAverageTypes = WSMA,
+  smoothingIndicator = WSMA,
 ) => {
   const results = new Map<string, RSIResult>();
 
@@ -39,7 +39,7 @@ export const evaluateRsiSignals = (
       continue;
     }
 
-    const rsiNumber = rsiValue.toNumber();
+    const rsiNumber = rsiValue;
     const isOverbought = rsiNumber > overboughtThreshold;
     const isOversold = rsiNumber < oversoldThreshold;
 
