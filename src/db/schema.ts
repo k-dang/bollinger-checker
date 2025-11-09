@@ -17,15 +17,15 @@ export const RunExecution = typeof runExecutions.$inferSelect;
 export const runSignals = pgTable('run_signals', {
   id: serial('id').primaryKey(),
   runExecutionId: integer('run_execution_id').notNull(),
-  ticker: varchar('ticker').notNull(),
-  signalType: varchar({ enum: ['BOLLINGER', 'RSI'] }).notNull(),
+  ticker: varchar().notNull(),
+  signalType: varchar('signal_type', { enum: ['BOLLINGER', 'RSI'] }).notNull(),
   detectedAt: timestamp('detected_at').notNull().defaultNow(),
   // Bollinger-specific fields
-  bollingerType: varchar({ enum: ['SELL_CALL', 'SELL_PUT'] }),
+  bollingerType: varchar('bollinger_type', { enum: ['SELL_CALL', 'SELL_PUT'] }),
   currentPrice: numeric('current_price'),
   upperBand: numeric('upper_band'),
   lowerBand: numeric('lower_band'),
   // RSI-specific fields
   rsiValue: numeric('rsi_value'),
-  rsiSignal: varchar({ enum: ['BUY', 'SELL', 'NEUTRAL'] }),
+  rsiSignal: varchar('rsi_signal', { enum: ['BUY', 'SELL', 'NEUTRAL'] }),
 });
