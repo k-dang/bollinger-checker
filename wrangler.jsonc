@@ -6,7 +6,6 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bollinger-checker",
   "main": "src/index.ts",
-  "compatibility_date": "2025-07-05",
   "observability": {
     "enabled": true,
   },
@@ -20,6 +19,7 @@
     "dev": { "name": "bollinger-checker" },
     "prod": { "name": "bollinger-checker-prod" },
   },
+  "compatibility_date": "2025-07-05",
   "compatibility_flags": ["nodejs_compat"],
   /**
    * Smart Placement
