@@ -12,8 +12,8 @@
   },
   "triggers": {
     "crons": [
-      "45 13 * * MON-FRI", // Runs at 13:45 UTC on weekdays
-      "0 20 * * MON-FRI", // Runs at 20:00 UTC on weekdays
+      "45 14 * * MON-FRI", // Runs at 13:45 UTC on weekdays
+      "0 21 * * MON-FRI", // Runs at 20:00 UTC on weekdays
     ],
   },
   "env": {
