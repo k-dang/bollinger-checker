@@ -30,3 +30,5 @@ export const runSignals = pgTable('run_signals', {
   rsiValue: numeric('rsi_value'),
   rsiSignal: varchar('rsi_signal', { enum: ['BUY', 'SELL', 'NEUTRAL'] }),
 });
+
+export type RunSignal = typeof runSignals.$inferSelect;

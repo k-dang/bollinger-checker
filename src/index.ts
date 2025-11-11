@@ -54,6 +54,8 @@ export default {
         };
       });
 
+      // TODO extract build signals table
+
       if (results.length === 0) {
         await sendDiscordWebhook(env.DISCORD_WEBHOOK_URL, 'Nothing Passed');
       } else {
@@ -62,16 +64,13 @@ export default {
       }
 
       console.log(`Trigger fired at ${event.cron}`);
-
-      const completedTime = new Date();
-      const durationMs = completedTime.getTime() - startTime.getTime();
       await logRunExecution({
         databaseUrl: env.DATABASE_URL,
         startedAt: startTime,
-        completedAt: completedTime,
+        completedAt: new Date(),
         status: 'success',
         environment: env.ENVIRONMENT_NAME,
-        durationMs,
+        durationMs: new Date().getTime() - startTime.getTime(),
         tickersChecked: tickerSymbols.length,
         cronTrigger: event.cron,
         bollingerSignalsFound: results.length,
