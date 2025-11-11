@@ -5,6 +5,7 @@ export const runExecutions = pgTable('run_executions', {
   startedAt: timestamp('started_at').notNull(),
   completedAt: timestamp('completed_at').notNull(),
   status: varchar({ enum: ['success', 'failed'] }).notNull(),
+  environment: varchar().notNull(),
   durationMs: integer('duration_ms').notNull(),
   tickersChecked: integer('tickers_checked').notNull(),
   cronTrigger: varchar('cron_trigger', { length: 100 }),
@@ -12,7 +13,7 @@ export const runExecutions = pgTable('run_executions', {
   rsiSignalsFound: integer('rsi_signals_found'),
 });
 
-export const RunExecution = typeof runExecutions.$inferSelect;
+export type RunExecution = typeof runExecutions.$inferSelect;
 
 export const runSignals = pgTable('run_signals', {
   id: serial('id').primaryKey(),

@@ -70,6 +70,7 @@ export default {
         startedAt: startTime,
         completedAt: completedTime,
         status: 'success',
+        environment: env.ENVIRONMENT_NAME,
         durationMs,
         tickersChecked: tickerSymbols.length,
         cronTrigger: event.cron,

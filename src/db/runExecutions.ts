@@ -1,22 +1,24 @@
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { runExecutions } from './schema';
+import { runExecutions, RunExecution } from './schema';
 
-interface LogRunExecutionParams {
+type LogRunExecutionParams = {
   databaseUrl: string;
-  startedAt: Date;
-  completedAt: Date;
-  status: 'success' | 'failed';
-  durationMs: number;
-  tickersChecked: number;
-  cronTrigger?: string;
-  bollingerSignalsFound?: number;
-  rsiSignalsFound?: number;
-}
+} & Omit<RunExecution, 'id'>;
 
 export async function logRunExecution(params: LogRunExecutionParams): Promise<number> {
-  const { databaseUrl, startedAt, completedAt, status, durationMs, tickersChecked, cronTrigger, bollingerSignalsFound, rsiSignalsFound } =
-    params;
+  const {
+    databaseUrl,
+    startedAt,
+    completedAt,
+    status,
+    environment,
+    durationMs,
+    tickersChecked,
+    cronTrigger,
+    bollingerSignalsFound,
+    rsiSignalsFound,
+  } = params;
 
   try {
     const client = postgres(databaseUrl);
@@ -28,6 +30,7 @@ export async function logRunExecution(params: LogRunExecutionParams): Promise<nu
         startedAt,
         completedAt,
         status,
+        environment,
         durationMs,
         tickersChecked,
         cronTrigger,

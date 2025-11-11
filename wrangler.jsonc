@@ -16,8 +16,8 @@
     ],
   },
   "env": {
-    "dev": { "name": "bollinger-checker" },
-    "prod": { "name": "bollinger-checker-prod" },
+    "dev": { "name": "bollinger-checker", "vars": { "ENVIRONMENT_NAME": "dev" } },
+    "prod": { "name": "bollinger-checker-prod", "vars": { "ENVIRONMENT_NAME": "prod" } },
   },
   "compatibility_date": "2025-07-05",
   "compatibility_flags": ["nodejs_compat"],

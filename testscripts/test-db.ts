@@ -5,6 +5,7 @@ import { logRunExecution } from '../src/db/runExecutions';
 
 async function testDb() {
   const databaseUrl = process.env.DATABASE_URL;
+  const environmentName = process.env.ENVIRONMENT_NAME ?? 'local';
 
   if (!databaseUrl) {
     console.error('Please set DATABASE_URL environment variable');
@@ -27,6 +28,7 @@ async function testDb() {
       startedAt: startTime,
       completedAt: completedTime,
       status: 'success',
+      environment: environmentName,
       durationMs,
       tickersChecked: 10,
       cronTrigger: '* * * * *',
