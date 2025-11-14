@@ -1,10 +1,10 @@
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { runExecutions, RunExecution } from './schema';
+import { runExecutions, RunExecutionInsert } from './schema';
 
-type LogRunExecutionParams = {
+interface LogRunExecutionParams extends RunExecutionInsert {
   databaseUrl: string;
-} & Omit<RunExecution, 'id'>;
+}
 
 export async function logRunExecution(params: LogRunExecutionParams): Promise<number> {
   const {

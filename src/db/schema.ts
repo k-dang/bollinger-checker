@@ -14,6 +14,7 @@ export const runExecutions = pgTable('run_executions', {
 });
 
 export type RunExecution = typeof runExecutions.$inferSelect;
+export type RunExecutionInsert = typeof runExecutions.$inferInsert;
 
 export const runSignals = pgTable('run_signals', {
   id: serial('id').primaryKey(),
