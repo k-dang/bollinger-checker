@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **bollinger-checker** is a Cloudflare Worker that monitors stock prices using Bollinger Bands technical analysis. It runs on a scheduled basis to identify trading opportunities and sends notifications via Discord webhooks when stocks breach their Bollinger Band thresholds.
+The **bollinger-checker** is a Cloudflare Worker that monitors stock prices using Bollinger Bands and RSI (Relative Strength Index) technical analysis. It runs on a scheduled basis to identify trading opportunities, sends notifications via Discord webhooks when stocks breach their Bollinger Band thresholds, and logs all execution runs and signals to a PostgreSQL database.
 
 ## System Architecture
 
@@ -17,6 +17,10 @@ graph TB
         ALPACA[Alpaca API]
         YAHOO[Yahoo Finance API]
         DISCORD[Discord Webhook]
+    end
+
+    subgraph "Data Storage"
+        DB[(PostgreSQL Database)]
     end
 
     subgraph "Data Sources"
@@ -34,7 +38,8 @@ graph TB
     ALPACA -->|Returns| PRICES
     YAHOO -->|Returns| OPTIONS
 
-    CW -->|Send Notifications| DISCORD
+    CW -->|Send Notifications<br/>Non-blocking| DISCORD
+    CW -->|Log Execution & Signals| DB
 
     BARS --> CW
     PRICES --> CW
@@ -50,6 +55,7 @@ sequenceDiagram
     participant Alpaca as Alpaca API
     participant Yahoo as Yahoo Finance
     participant Discord as Discord Webhook
+    participant DB as PostgreSQL Database
 
     Cron->>Worker: Scheduled execution (13:45 & 20:00 UTC)
 
@@ -60,19 +66,23 @@ sequenceDiagram
     Alpaca-->>Worker: Current market prices
 
     Worker->>Worker: Calculate Bollinger Bands
-    Worker->>Worker: Check band breaches
+    Worker->>Worker: Calculate RSI signals
+    Worker->>Worker: Check band breaches & combine with RSI
 
     alt Stock breaches upper band
         Worker->>Yahoo: Get options chain
         Yahoo-->>Worker: Call options data
-        Worker->>Discord: Send SELL CALL notification (with 500ms delay)
+        Worker->>Discord: Send SELL CALL notification (non-blocking, 500ms delay)
     else Stock breaches lower band
         Worker->>Yahoo: Get options chain
         Yahoo-->>Worker: Put options data
-        Worker->>Discord: Send SELL PUT notification (with 500ms delay)
+        Worker->>Discord: Send SELL PUT notification (non-blocking, 500ms delay)
     else No breaches
-        Worker->>Discord: Send "Nothing Passed" notification
+        Worker->>Discord: Send "Nothing Passed" notification (non-blocking)
     end
+
+    Worker->>DB: Log run execution (status, duration, signals found)
+    Worker->>DB: Log individual signals (Bollinger + RSI data)
 ```
 
 ## Technical Analysis Flow
@@ -81,23 +91,25 @@ sequenceDiagram
 graph TD
     START[Start Analysis] --> FETCH_BARS[Fetch 35-day Historical Bars]
     FETCH_BARS --> CALC_BB[Calculate Bollinger Bands<br/>Period: 20 days]
+    FETCH_BARS --> CALC_RSI[Calculate RSI<br/>Period: 14 days]
     CALC_BB --> GET_PRICE[Get Latest Stock Price]
+    CALC_RSI --> COMBINE[Combine Bollinger & RSI Results]
     GET_PRICE --> CHECK_UPPER{Price near/above<br/>Upper Band?}
 
     CHECK_UPPER -->|Yes| FETCH_CALLS[Fetch Call Options]
     FETCH_CALLS --> FILTER_CALLS[Filter OTM Calls<br/>Strike > Current Price]
-    FILTER_CALLS --> NOTIFY_CALLS[Send SELL CALL<br/>Discord Notification]
+    FILTER_CALLS --> NOTIFY_CALLS[Send SELL CALL<br/>Discord Notification<br/>Non-blocking]
 
     CHECK_UPPER -->|No| CHECK_LOWER{Price near/below<br/>Lower Band?}
     CHECK_LOWER -->|Yes| FETCH_PUTS[Fetch Put Options]
     FETCH_PUTS --> FILTER_PUTS[Filter OTM Puts<br/>Strike < Current Price]
-    FILTER_PUTS --> NOTIFY_PUTS[Send SELL PUT<br/>Discord Notification]
+    FILTER_PUTS --> NOTIFY_PUTS[Send SELL PUT<br/>Discord Notification<br/>Non-blocking]
 
     CHECK_LOWER -->|No| NO_SIGNAL[No Trading Signal]
-    NOTIFY_CALLS --> DELAY[500ms Delay]
-    NOTIFY_PUTS --> DELAY
-    DELAY --> END[End Analysis]
-    NO_SIGNAL --> END
+    NOTIFY_CALLS --> LOG_DB[Log to Database]
+    NOTIFY_PUTS --> LOG_DB
+    NO_SIGNAL --> LOG_DB
+    LOG_DB --> END[End Analysis]
 ```
 
 ## Key Features
@@ -110,8 +122,13 @@ graph TD
 ### 📈 Technical Analysis
 
 - **Bollinger Bands**: 20-period moving average with 2 standard deviations (default)
-- **Threshold Detection**: 1% proximity to band edges (default)
-- **Signal Generation**: Upper band breach = Sell Calls, Lower band breach = Sell Puts
+- **RSI (Relative Strength Index)**: 14-period RSI calculation with overbought (>70) and oversold (<30) thresholds
+- **Threshold Detection**: 1% proximity to band edges for Bollinger signals (default)
+- **Signal Generation**: 
+  - Upper band breach = Sell Calls
+  - Lower band breach = Sell Puts
+  - RSI signals: BUY (oversold), SELL (overbought), NEUTRAL
+- **Combined Analysis**: Results combine both Bollinger Band signals and RSI values for comprehensive trading insights
 
 ### 📊 Data Integration
 
@@ -121,11 +138,33 @@ graph TD
 
 ### 🔔 Smart Notifications
 
-- **Discord Integration**: Rich embed notifications with options tables
+- **Discord Integration**: Rich embed notifications with options tables and RSI data
+- **Non-blocking Execution**: Discord notifications use `ctx.waitUntil()` to run asynchronously without blocking main execution flow
 - **Rate Limiting**: 500ms delay between webhook calls to prevent Discord API limits
 - **Error Handling**: Robust error handling with success/failure tracking for each notification
 - **Conditional Messaging**: Different messages for signals vs. no activity
 - **Options Data**: Top 10 out-of-the-money options with strike, price, bid, ask, and IV (default limit)
+- **RSI Display**: RSI values and signals (OVERBOUGHT/OVERSOLD/NEUTRAL) included in notifications
+
+### 💾 Database Persistence
+
+- **Execution Logging**: All run executions are logged to PostgreSQL with:
+  - Start/completion timestamps
+  - Execution status (success/failed)
+  - Duration metrics
+  - Ticker count and signal counts
+  - Cron trigger information
+  - Environment identifier
+
+- **Signal Logging**: Individual trading signals are persisted with:
+  - Bollinger Band data (signal type, current price, upper/lower bands)
+  - RSI data (RSI value, signal type: BUY/SELL/NEUTRAL)
+  - Ticker symbol and detection timestamp
+  - Link to parent execution run
+
+- **Database Schema**: Uses Drizzle ORM with PostgreSQL
+  - `run_executions` table: High-level execution metadata
+  - `run_signals` table: Individual signal details with foreign key to execution
 
 ## Logging and Observability
 
@@ -146,7 +185,10 @@ graph TD
 ## Defaults and Tunables
 
 - **Bollinger Period**: 20 (passed to the bands calculator; exposed via `getBollingerBands(bars, period = 20)`).
-- **Threshold**: 1% proximity to upper/lower bands for signal detection (within `isNearOrPastUpperBand`/`isNearOrPastLowerBand`).
+- **Bollinger Threshold**: 1% proximity to upper/lower bands for signal detection (within `isNearOrPastUpperBand`/`isNearOrPastLowerBand`).
+- **RSI Period**: 14 days (default in `evaluateRsiSignals`)
+- **RSI Overbought Threshold**: 70 (default)
+- **RSI Oversold Threshold**: 30 (default)
 - **Options Limit**: 10 top out-of-the-money options (calls above price, puts below price).
 
 These defaults are encoded in code for simplicity and can be adjusted in future via configuration if needed.
@@ -169,5 +211,7 @@ Currently tracking **31 major stocks** including:
 - **Language**: TypeScript
 - **Build Tool**: Wrangler
 - **Package Manager**: pnpm
+- **Database**: PostgreSQL with Drizzle ORM
 - **External APIs**: Alpaca Markets, Yahoo Finance
 - **Notifications**: Discord Webhooks
+- **Technical Indicators**: trading-signals library (RSI, Bollinger Bands)
