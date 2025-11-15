@@ -21,7 +21,7 @@ import { sendDiscordWebhook, notifyDiscordWithResults } from '@/utils/discord';
 import { tickerSymbols } from '@/data/tickers';
 import { evaluateRsiSignals } from '@/core/checkers/rsiChecker';
 import { YahooOptionsProvider } from '@/core/providers/OptionsProvider';
-import { logRunExecution } from '@/db/runExecutions';
+import { logRunExecution } from '@/db';
 
 export default {
   async fetch(req) {

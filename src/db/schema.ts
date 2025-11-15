@@ -13,7 +13,6 @@ export const runExecutions = pgTable('run_executions', {
   rsiSignalsFound: integer('rsi_signals_found'),
 });
 
-export type RunExecution = typeof runExecutions.$inferSelect;
 export type RunExecutionInsert = typeof runExecutions.$inferInsert;
 
 export const runSignals = pgTable('run_signals', {
@@ -23,13 +22,13 @@ export const runSignals = pgTable('run_signals', {
   signalType: varchar('signal_type', { enum: ['BOLLINGER', 'RSI'] }).notNull(),
   detectedAt: timestamp('detected_at').notNull().defaultNow(),
   // Bollinger-specific fields
-  bollingerType: varchar('bollinger_type', { enum: ['SELL_CALL', 'SELL_PUT'] }),
-  currentPrice: numeric('current_price'),
-  upperBand: numeric('upper_band'),
-  lowerBand: numeric('lower_band'),
+  bollingerType: varchar('bollinger_type', { enum: ['SELL_CALL', 'SELL_PUT'] }).notNull(),
+  currentPrice: numeric('current_price', { mode: 'number' }).notNull(),
+  upperBand: numeric('upper_band', { mode: 'number' }).notNull(),
+  lowerBand: numeric('lower_band', { mode: 'number' }).notNull(),
   // RSI-specific fields
-  rsiValue: numeric('rsi_value'),
-  rsiSignal: varchar('rsi_signal', { enum: ['BUY', 'SELL', 'NEUTRAL'] }),
+  rsiValue: numeric('rsi_value', { mode: 'number' }).notNull(),
+  rsiSignal: varchar('rsi_signal', { enum: ['BUY', 'SELL', 'NEUTRAL'] }).notNull(),
 });
 
-export type RunSignal = typeof runSignals.$inferSelect;
+export type RunSignalInsert = typeof runSignals.$inferInsert;

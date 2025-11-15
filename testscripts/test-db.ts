@@ -1,7 +1,7 @@
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { runExecutions, runSignals } from '../src/db/schema';
-import { logRunExecution } from '../src/db/runExecutions';
+import { logRunExecution, logRunSignal } from '../src/db';
 
 async function testDb() {
   const databaseUrl = process.env.DATABASE_URL;
@@ -39,54 +39,66 @@ async function testDb() {
 
     console.log('\n=== Testing runSignals table ===');
     console.log('Inserting Bollinger signal...');
-    const bollingerSignal = await db
-      .insert(runSignals)
-      .values({
-        runExecutionId: runExecutionId,
-        ticker: 'AAPL',
-        signalType: 'BOLLINGER',
-        detectedAt: new Date(),
-        bollingerType: 'SELL_CALL',
-        currentPrice: '150.25',
-        upperBand: '152.50',
-        lowerBand: '147.50',
-      })
-      .returning();
+    const bollingerSignalId = await logRunSignal({
+      databaseUrl,
+      runExecutionId: runExecutionId,
+      ticker: 'AAPL',
+      signalType: 'BOLLINGER',
+      detectedAt: new Date(),
+      bollingerType: 'SELL_CALL',
+      currentPrice: 150.25,
+      upperBand: 152.5,
+      lowerBand: 147.5,
+      rsiValue: 0,
+      rsiSignal: 'NEUTRAL',
+    });
 
-    console.log('Bollinger signal inserted:', bollingerSignal[0]);
+    console.log(`Bollinger signal inserted! Signal ID: ${bollingerSignalId}`);
 
     console.log('Inserting RSI signals...');
-    const rsiSignals = await db
-      .insert(runSignals)
-      .values([
-        {
-          runExecutionId: runExecutionId,
-          ticker: 'AAPL',
-          signalType: 'RSI',
-          detectedAt: new Date(),
-          rsiValue: '75.5',
-          rsiSignal: 'SELL',
-        },
-        {
-          runExecutionId: runExecutionId,
-          ticker: 'MSFT',
-          signalType: 'RSI',
-          detectedAt: new Date(),
-          rsiValue: '45.2',
-          rsiSignal: 'NEUTRAL',
-        },
-        {
-          runExecutionId: runExecutionId,
-          ticker: 'GOOGL',
-          signalType: 'RSI',
-          detectedAt: new Date(),
-          rsiValue: '25.8',
-          rsiSignal: 'BUY',
-        },
-      ])
-      .returning();
+    const rsiSignal1Id = await logRunSignal({
+      databaseUrl,
+      runExecutionId: runExecutionId,
+      ticker: 'AAPL',
+      signalType: 'RSI',
+      detectedAt: new Date(),
+      rsiValue: 75.5,
+      rsiSignal: 'SELL',
+      bollingerType: 'SELL_CALL',
+      currentPrice: 0,
+      upperBand: 0,
+      lowerBand: 0,
+    });
 
-    console.log(`RSI signals inserted: ${rsiSignals.length} records`);
+    const rsiSignal2Id = await logRunSignal({
+      databaseUrl,
+      runExecutionId: runExecutionId,
+      ticker: 'MSFT',
+      signalType: 'RSI',
+      detectedAt: new Date(),
+      rsiValue: 45.2,
+      rsiSignal: 'NEUTRAL',
+      bollingerType: 'SELL_CALL',
+      currentPrice: 0,
+      upperBand: 0,
+      lowerBand: 0,
+    });
+
+    const rsiSignal3Id = await logRunSignal({
+      databaseUrl,
+      runExecutionId: runExecutionId,
+      ticker: 'GOOGL',
+      signalType: 'RSI',
+      detectedAt: new Date(),
+      rsiValue: 25.8,
+      rsiSignal: 'BUY',
+      bollingerType: 'SELL_CALL',
+      currentPrice: 0,
+      upperBand: 0,
+      lowerBand: 0,
+    });
+
+    console.log(`RSI signals inserted: 3 records (IDs: ${rsiSignal1Id}, ${rsiSignal2Id}, ${rsiSignal3Id})`);
 
     console.log('\n=== Querying records ===');
     const executionRecords = await db.select().from(runExecutions);
