@@ -38,67 +38,61 @@ async function testDb() {
     console.log(`Insert successful! Run execution ID: ${runExecutionId}`);
 
     console.log('\n=== Testing runSignals table ===');
-    console.log('Inserting Bollinger signal...');
-    const bollingerSignalId = await logRunSignal({
-      databaseUrl,
-      runExecutionId: runExecutionId,
-      ticker: 'AAPL',
-      signalType: 'BOLLINGER',
-      detectedAt: new Date(),
-      bollingerType: 'SELL_CALL',
-      currentPrice: 150.25,
-      upperBand: 152.5,
-      lowerBand: 147.5,
-      rsiValue: 0,
-      rsiSignal: 'NEUTRAL',
-    });
+    console.log('Inserting signals in parallel...');
+    const [bollingerSignalId, rsiSignal1Id, rsiSignal2Id, rsiSignal3Id] = await Promise.all([
+      logRunSignal({
+        databaseUrl,
+        runExecutionId: runExecutionId,
+        ticker: 'AAPL',
+        detectedAt: new Date(),
+        bollingerSignal: 'SELL_CALL',
+        currentPrice: 150.25,
+        upperBand: 152.5,
+        lowerBand: 147.5,
+        rsiValue: 0,
+        rsiSignal: 'NEUTRAL',
+      }),
+      logRunSignal({
+        databaseUrl,
+        runExecutionId: runExecutionId,
+        ticker: 'AAPL',
+        detectedAt: new Date(),
+        rsiValue: 75.5,
+        rsiSignal: 'SELL',
+        bollingerSignal: 'SELL_CALL',
+        currentPrice: 0,
+        upperBand: 0,
+        lowerBand: 0,
+      }),
+      logRunSignal({
+        databaseUrl,
+        runExecutionId: runExecutionId,
+        ticker: 'MSFT',
+        detectedAt: new Date(),
+        rsiValue: 45.2,
+        rsiSignal: 'NEUTRAL',
+        bollingerSignal: 'SELL_CALL',
+        currentPrice: 0,
+        upperBand: 0,
+        lowerBand: 0,
+      }),
+      logRunSignal({
+        databaseUrl,
+        runExecutionId: runExecutionId,
+        ticker: 'GOOGL',
+        detectedAt: new Date(),
+        rsiValue: 25.8,
+        rsiSignal: 'BUY',
+        bollingerSignal: 'SELL_CALL',
+        currentPrice: 0,
+        upperBand: 0,
+        lowerBand: 0,
+      }),
+    ]);
 
-    console.log(`Bollinger signal inserted! Signal ID: ${bollingerSignalId}`);
-
-    console.log('Inserting RSI signals...');
-    const rsiSignal1Id = await logRunSignal({
-      databaseUrl,
-      runExecutionId: runExecutionId,
-      ticker: 'AAPL',
-      signalType: 'RSI',
-      detectedAt: new Date(),
-      rsiValue: 75.5,
-      rsiSignal: 'SELL',
-      bollingerType: 'SELL_CALL',
-      currentPrice: 0,
-      upperBand: 0,
-      lowerBand: 0,
-    });
-
-    const rsiSignal2Id = await logRunSignal({
-      databaseUrl,
-      runExecutionId: runExecutionId,
-      ticker: 'MSFT',
-      signalType: 'RSI',
-      detectedAt: new Date(),
-      rsiValue: 45.2,
-      rsiSignal: 'NEUTRAL',
-      bollingerType: 'SELL_CALL',
-      currentPrice: 0,
-      upperBand: 0,
-      lowerBand: 0,
-    });
-
-    const rsiSignal3Id = await logRunSignal({
-      databaseUrl,
-      runExecutionId: runExecutionId,
-      ticker: 'GOOGL',
-      signalType: 'RSI',
-      detectedAt: new Date(),
-      rsiValue: 25.8,
-      rsiSignal: 'BUY',
-      bollingerType: 'SELL_CALL',
-      currentPrice: 0,
-      upperBand: 0,
-      lowerBand: 0,
-    });
-
-    console.log(`RSI signals inserted: 3 records (IDs: ${rsiSignal1Id}, ${rsiSignal2Id}, ${rsiSignal3Id})`);
+    console.log(
+      `Signals inserted: Bollinger ID=${bollingerSignalId}, RSI IDs=${rsiSignal1Id}, ${rsiSignal2Id}, ${rsiSignal3Id}`,
+    );
 
     console.log('\n=== Querying records ===');
     const executionRecords = await db.select().from(runExecutions);
@@ -109,17 +103,13 @@ async function testDb() {
     console.log(`\nTotal signal records: ${signalRecords.length}`);
     console.log('Signal records:');
     signalRecords.forEach((record, index) => {
-      console.log(`  ${index + 1}. ${record.ticker} - ${record.signalType}`, {
-        ...(record.signalType === 'BOLLINGER' && {
-          type: record.bollingerType,
-          price: record.currentPrice,
-          upperBand: record.upperBand,
-          lowerBand: record.lowerBand,
-        }),
-        ...(record.signalType === 'RSI' && {
-          rsi: record.rsiValue,
-          signal: record.rsiSignal,
-        }),
+      console.log(`  ${index + 1}. ${record.ticker} - ${record.bollingerSignal}`, {
+        bollingerSignal: record.bollingerSignal,
+        currentPrice: record.currentPrice,
+        upperBand: record.upperBand,
+        lowerBand: record.lowerBand,
+        rsiValue: record.rsiValue,
+        rsiSignal: record.rsiSignal,
       });
     });
 

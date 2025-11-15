@@ -19,10 +19,9 @@ export const runSignals = pgTable('run_signals', {
   id: serial('id').primaryKey(),
   runExecutionId: integer('run_execution_id').notNull(),
   ticker: varchar().notNull(),
-  signalType: varchar('signal_type', { enum: ['BOLLINGER', 'RSI'] }).notNull(),
   detectedAt: timestamp('detected_at').notNull().defaultNow(),
   // Bollinger-specific fields
-  bollingerType: varchar('bollinger_type', { enum: ['SELL_CALL', 'SELL_PUT'] }).notNull(),
+  bollingerSignal: varchar('bollinger_signal', { enum: ['SELL_CALL', 'SELL_PUT'] }).notNull(),
   currentPrice: numeric('current_price', { mode: 'number' }).notNull(),
   upperBand: numeric('upper_band', { mode: 'number' }).notNull(),
   lowerBand: numeric('lower_band', { mode: 'number' }).notNull(),

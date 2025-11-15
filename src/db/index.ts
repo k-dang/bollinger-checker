@@ -57,9 +57,8 @@ export async function logRunSignal(params: LogRunSignalParams): Promise<number> 
     databaseUrl,
     runExecutionId,
     ticker,
-    signalType,
     detectedAt,
-    bollingerType,
+    bollingerSignal,
     currentPrice,
     upperBand,
     lowerBand,
@@ -76,9 +75,8 @@ export async function logRunSignal(params: LogRunSignalParams): Promise<number> 
       .values({
         runExecutionId,
         ticker,
-        signalType,
         detectedAt,
-        bollingerType,
+        bollingerSignal,
         currentPrice,
         upperBand,
         lowerBand,
@@ -88,7 +86,7 @@ export async function logRunSignal(params: LogRunSignalParams): Promise<number> 
       .returning({ id: runSignals.id });
 
     await client.end();
-    console.log(`[RunSignal] Record inserted: ticker=${ticker}, signalType=${signalType}`);
+    console.log(`[RunSignal] Record inserted: ticker=${ticker}`);
     return result[0].id;
   } catch (dbErr) {
     console.error('[RunSignal] Failed to insert record:', dbErr);
