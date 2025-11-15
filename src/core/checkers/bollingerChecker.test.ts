@@ -253,12 +253,14 @@ describe('evaluateBollingerSignals', () => {
     expect(result[0]).toMatchObject({
       type: 'SELL_CALL',
       symbol: 'TEST',
-      resultTitle: 'Passed Upper band or within 1%',
+      currentPrice: 110,
     });
-    expect(result[0].resultValue).toContain('Current: 110.00');
-    expect(result[0].resultValue).toContain('Upper:');
-    expect(result[0].optionsTable).toBeDefined();
-    expect(result[0].optionsTableTitle).toBeDefined();
+    expect(result[0].upperBand).toBeDefined();
+    expect(result[0].lowerBand).toBeDefined();
+    expect(result[0].middleBand).toBeDefined();
+    expect(result[0].options).toBeDefined();
+    expect(Array.isArray(result[0].options)).toBe(true);
+    expect(result[0].options.length).toBeGreaterThan(0);
   });
 
   test('should return SELL_PUT result when price is near lower band', async () => {
@@ -282,12 +284,14 @@ describe('evaluateBollingerSignals', () => {
     expect(result[0]).toMatchObject({
       type: 'SELL_PUT',
       symbol: 'TEST',
-      resultTitle: 'Passed Lower band or within 1%',
+      currentPrice: 90,
     });
-    expect(result[0].resultValue).toContain('Current: 90');
-    expect(result[0].resultValue).toContain('Lower:');
-    expect(result[0].optionsTable).toBeDefined();
-    expect(result[0].optionsTableTitle).toBeDefined();
+    expect(result[0].upperBand).toBeDefined();
+    expect(result[0].lowerBand).toBeDefined();
+    expect(result[0].middleBand).toBeDefined();
+    expect(result[0].options).toBeDefined();
+    expect(Array.isArray(result[0].options)).toBe(true);
+    expect(result[0].options.length).toBeGreaterThan(0);
   });
 
   test('should return empty array when price is in middle range', async () => {

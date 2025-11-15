@@ -1,5 +1,5 @@
 import { RSI, WSMA } from 'trading-signals';
-import { Bar, RSIResult } from '@/core/types/technicals';
+import { Bar, RSISignal } from '@/core/types/technicals';
 
 /**
  * Calculate RSI values for multiple tickers using historical price data
@@ -17,7 +17,7 @@ export const evaluateRsiSignals = (
   oversoldThreshold = 30,
   smoothingIndicator = WSMA,
 ) => {
-  const results = new Map<string, RSIResult>();
+  const results = new Map<string, RSISignal>();
 
   for (const [symbol, barData] of bars.entries()) {
     if (barData.length < period) {

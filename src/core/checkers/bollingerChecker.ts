@@ -1,7 +1,6 @@
 import { BollingerBands } from 'trading-signals';
 import { IOptionsProvider } from '@/core/providers/OptionsProvider';
-import { buildOptionsTable, optionsTableTitle } from '@/utils/optionsTable';
-import { Bar, BandCheckResult, BollingerBandResult } from '@/core/types/technicals';
+import { Bar, BollingerSignal, BollingerBandResult } from '@/core/types/technicals';
 import { OptionContract } from '@/core/types/options';
 
 /**
@@ -90,29 +89,6 @@ export const filterOutOfTheMoneyPutOptions = (puts: OptionContract[], currentPri
   return puts.filter((put) => put.strike < currentPrice).slice(0, limit);
 };
 
-/**
- * Creates a sell call signal result
- */
-const createSellCallResult = (symbol: string, latestPrice: number, upperBand: number, optionsTable: string): BandCheckResult => ({
-  type: 'SELL_CALL',
-  symbol,
-  resultTitle: 'Passed Upper band or within 1%',
-  resultValue: `Current: ${latestPrice.toFixed(2)} \n Upper: ${upperBand.toFixed(2)}`,
-  optionsTableTitle,
-  optionsTable,
-});
-
-/**
- * Creates a sell put signal result
- */
-const createSellPutResult = (symbol: string, latestPrice: number, lowerBand: number, optionsTable: string): BandCheckResult => ({
-  type: 'SELL_PUT',
-  symbol,
-  resultTitle: 'Passed Lower band or within 1%',
-  resultValue: `Current: ${latestPrice.toFixed(2)} \n Lower: ${lowerBand.toFixed(2)}`,
-  optionsTableTitle,
-  optionsTable,
-});
 
 /**
  * Evaluates a single symbol for Bollinger Band signals
@@ -122,25 +98,39 @@ const evaluateSymbolSignal = async (
   latestPrice: number,
   bands: BollingerBandResult,
   optionsProvider: IOptionsProvider,
-): Promise<BandCheckResult | null> => {
-  const { upper, lower } = bands;
+): Promise<BollingerSignal | null> => {
+  const { upper, lower, middle } = bands;
 
   // Check upper band signal
   if (isNearOrPastUpperBand(latestPrice, upper)) {
     const optionsChain = await optionsProvider.getLatestOptionChain(symbol);
     const filteredCalls = filterOutOfTheMoneyCallOptions(optionsChain.calls, latestPrice, 10);
-    const optionsTable = buildOptionsTable(filteredCalls);
 
-    return createSellCallResult(symbol, latestPrice, upper, optionsTable);
+    return {
+      symbol,
+      type: 'SELL_CALL',
+      currentPrice: latestPrice,
+      upperBand: upper,
+      lowerBand: lower,
+      middleBand: middle,
+      options: filteredCalls,
+    };
   }
 
   // Check lower band signal
   if (isNearOrPastLowerBand(latestPrice, lower)) {
     const optionsChain = await optionsProvider.getLatestOptionChain(symbol);
     const filteredPuts = filterOutOfTheMoneyPutOptions(optionsChain.puts, latestPrice, 10);
-    const optionsTable = buildOptionsTable(filteredPuts);
 
-    return createSellPutResult(symbol, latestPrice, lower, optionsTable);
+    return {
+      symbol,
+      type: 'SELL_PUT',
+      currentPrice: latestPrice,
+      upperBand: upper,
+      lowerBand: lower,
+      middleBand: middle,
+      options: filteredPuts,
+    };
   }
 
   return null;
@@ -152,7 +142,7 @@ const evaluateSymbolSignal = async (
  * @param latestPrices - Current price for each symbol
  * @param optionsProvider - Provider for fetching options chain data
  * @param logger - Optional logger for debug/info messages (defaults to console logger)
- * @returns Array of band check results with trading signals
+ * @returns Array of Bollinger signals with raw data
  * @throws Error if Bollinger Bands cannot be calculated
  */
 export const evaluateBollingerSignals = async (
@@ -160,12 +150,12 @@ export const evaluateBollingerSignals = async (
   latestPrices: Record<string, number>,
   optionsProvider: IOptionsProvider,
   logger: ILogger = consoleLogger,
-): Promise<BandCheckResult[]> => {
+): Promise<BollingerSignal[]> => {
   // Calculate Bollinger Bands for all symbols
   const bands = await getBollingerBands(bars);
 
   // Evaluate signals for each symbol
-  const results: BandCheckResult[] = [];
+  const results: BollingerSignal[] = [];
   for (const symbol of bars.keys()) {
     const latestPrice = latestPrices[symbol];
     const symbolBands = bands[symbol];

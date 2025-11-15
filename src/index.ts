@@ -41,25 +41,23 @@ export default {
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
       // check bollinger bands
-      const results = await evaluateBollingerSignals(bars, latestPrices, new YahooOptionsProvider());
+      const bollingerSignals = await evaluateBollingerSignals(bars, latestPrices, new YahooOptionsProvider());
       // check rsi
       const rsiResults = evaluateRsiSignals(bars);
 
       // combine results
-      const extendedResults = results.map((result) => {
+      const results = bollingerSignals.map((result) => {
         const rsi = rsiResults.get(result.symbol);
         return {
-          bollingerResult: result,
-          rsiResult: rsi,
+          bollingerSignal: result,
+          rsiSignal: rsi,
         };
       });
 
-      // TODO extract build signals table
-
-      if (results.length === 0) {
+      if (bollingerSignals.length === 0) {
         await sendDiscordWebhook(env.DISCORD_WEBHOOK_URL, 'Nothing Passed');
       } else {
-        const { successCount, failureCount } = await notifyDiscordWithResults(env.DISCORD_WEBHOOK_URL, extendedResults);
+        const { successCount, failureCount } = await notifyDiscordWithResults(env.DISCORD_WEBHOOK_URL, results);
         console.log(`Discord webhook results: ${successCount} succeeded, ${failureCount} failed`);
       }
 
@@ -73,8 +71,8 @@ export default {
         durationMs: new Date().getTime() - startTime.getTime(),
         tickersChecked: tickerSymbols.length,
         cronTrigger: event.cron,
-        bollingerSignalsFound: results.length,
-        rsiSignalsFound: rsiResults.size,
+        bollingerSignalsFound: bollingerSignals.length,
+        rsiSignalsFound: results.length,
       });
     } catch (err) {
       console.error('Scheduled event failed:', err);

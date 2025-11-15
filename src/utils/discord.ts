@@ -1,4 +1,5 @@
-import { BandCheckResult, RSIResult } from '@/core/types/technicals';
+import { BollingerSignal, RSISignal } from '@/core/types/technicals';
+import { formatBollingerSignal } from '@/utils/bollingerFormatter';
 import { delay } from '@/utils/time';
 
 interface Field {
@@ -40,17 +41,20 @@ const sendDiscordWebhookEmbeds = async (webhookUrl: string, fields: Field[]) => 
 };
 
 interface FullResult {
-  bollingerResult: BandCheckResult;
-  rsiResult?: RSIResult;
+  bollingerSignal: BollingerSignal;
+  rsiSignal?: RSISignal;
 }
 
 export async function notifyDiscordWithResults(webhookUrl: string, results: FullResult[]) {
-  const discordFieldsList = results.map((result) => [
-    { name: result.bollingerResult.symbol, value: result.bollingerResult.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS' },
-    { name: result.bollingerResult.resultTitle, value: result.bollingerResult.resultValue },
-    { name: `RSI: ${result.rsiResult?.rsi}`, value: result.rsiResult?.status ?? '' },
-    { name: result.bollingerResult.optionsTableTitle, value: result.bollingerResult.optionsTable },
-  ]);
+  const discordFieldsList = results.map((result) => {
+    const formatted = formatBollingerSignal(result.bollingerSignal);
+    return [
+      { name: result.bollingerSignal.symbol, value: result.bollingerSignal.type === 'SELL_CALL' ? 'Sell CALLS' : 'Sell PUTS' },
+      { name: formatted.resultTitle, value: formatted.resultValue },
+      { name: `RSI: ${result.rsiSignal?.rsi}`, value: result.rsiSignal?.status ?? '' },
+      { name: formatted.optionsTableTitle, value: formatted.optionsTable },
+    ];
+  });
 
   let successCount = 0;
   let failureCount = 0;

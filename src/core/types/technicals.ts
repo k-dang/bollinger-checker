@@ -1,3 +1,5 @@
+import { OptionContract } from './options';
+
 export interface Bar {
   Timestamp: string; // ISO 8601 format
   ClosePrice: number;
@@ -10,16 +12,17 @@ export interface BollingerBandResult {
   lower: number;
 }
 
-export interface BandCheckResult {
-  type: 'SELL_CALL' | 'SELL_PUT';
+export interface BollingerSignal {
   symbol: string;
-  resultTitle: string; // Passed Upper band | Passed Lower band
-  resultValue: string; // Current x | Upper x | Lower x
-  optionsTableTitle: string;
-  optionsTable: string;
+  type: 'SELL_CALL' | 'SELL_PUT';
+  currentPrice: number;
+  upperBand: number;
+  lowerBand: number;
+  middleBand: number;
+  options: OptionContract[];
 }
 
-export interface RSIResult {
+export interface RSISignal {
   symbol: string;
   rsi: number;
   isOverbought: boolean; // RSI > 70
