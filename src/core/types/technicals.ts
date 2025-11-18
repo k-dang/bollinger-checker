@@ -30,3 +30,11 @@ export interface RSISignal {
   signal: 'BUY' | 'SELL' | 'NEUTRAL';
   status: string; // overbought, oversold, neutral
 }
+
+export interface MACDSignal {
+  symbol: string;
+  macd: number; // MACD line value
+  signal: number; // Signal line value
+  histogram: number; // MACD histogram (MACD - Signal)
+  crossover: 'BULLISH' | 'BEARISH' | 'NEUTRAL'; // Crossover direction
+}

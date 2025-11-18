@@ -11,6 +11,7 @@ export const runExecutions = pgTable('run_executions', {
   cronTrigger: varchar('cron_trigger', { length: 100 }),
   bollingerSignalsFound: integer('bollinger_signals_found'),
   rsiSignalsFound: integer('rsi_signals_found'),
+  macdSignalsFound: integer('macd_signals_found'),
 });
 
 export type RunExecutionInsert = typeof runExecutions.$inferInsert;
@@ -28,6 +29,11 @@ export const runSignals = pgTable('run_signals', {
   // RSI-specific fields
   rsiValue: numeric('rsi_value', { mode: 'number' }).notNull(),
   rsiSignal: varchar('rsi_signal', { enum: ['BUY', 'SELL', 'NEUTRAL'] }).notNull(),
+  // MACD-specific fields
+  macdValue: numeric('macd_value', { mode: 'number' }),
+  macdSignal: numeric('macd_signal', { mode: 'number' }),
+  macdHistogram: numeric('macd_histogram', { mode: 'number' }),
+  macdCrossover: varchar('macd_crossover', { enum: ['BULLISH', 'BEARISH', 'NEUTRAL'] }),
 });
 
 export type RunSignalInsert = typeof runSignals.$inferInsert;

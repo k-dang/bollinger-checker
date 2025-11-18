@@ -18,6 +18,7 @@ export async function logRunExecution(params: LogRunExecutionParams): Promise<nu
     cronTrigger,
     bollingerSignalsFound,
     rsiSignalsFound,
+    macdSignalsFound,
   } = params;
 
   try {
@@ -36,6 +37,7 @@ export async function logRunExecution(params: LogRunExecutionParams): Promise<nu
         cronTrigger,
         bollingerSignalsFound,
         rsiSignalsFound,
+        macdSignalsFound,
       })
       .returning({ id: runExecutions.id });
 
@@ -64,6 +66,10 @@ export async function logRunSignal(params: LogRunSignalParams): Promise<number> 
     lowerBand,
     rsiValue,
     rsiSignal,
+    macdValue,
+    macdSignal,
+    macdHistogram,
+    macdCrossover,
   } = params;
 
   try {
@@ -82,6 +88,10 @@ export async function logRunSignal(params: LogRunSignalParams): Promise<number> 
         lowerBand,
         rsiValue,
         rsiSignal,
+        macdValue,
+        macdSignal,
+        macdHistogram,
+        macdCrossover,
       })
       .returning({ id: runSignals.id });
 

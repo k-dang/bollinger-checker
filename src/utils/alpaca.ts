@@ -46,7 +46,7 @@ export class AlpacaClient {
     };
   }
 
-  async getBars(symbols: string[], days = 35) {
+  async getBars(symbols: string[], days = 60) {
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const symbolsQuery = symbols.join(',');
     const url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;

@@ -20,6 +20,7 @@ import { evaluateBollingerSignals } from '@/core/checkers/bollingerChecker';
 import { sendDiscordWebhook, notifyDiscordWithResults } from '@/utils/discord';
 import { tickerSymbols } from '@/data/tickers';
 import { evaluateRsiSignals } from '@/core/checkers/rsiChecker';
+import { evaluateMacdSignals } from '@/core/checkers/macdChecker';
 import { YahooOptionsProvider } from '@/core/providers/OptionsProvider';
 import { logRunExecution, logRunSignal } from '@/db';
 
@@ -50,13 +51,17 @@ export default {
       );
       // check rsi
       const rsiResults = evaluateRsiSignals(bars);
+      // check macd
+      const macdResults = evaluateMacdSignals(bars);
 
-      // combine results
+      // combine results - include all bollinger signals with RSI and MACD data
       const results = bollingerSignals.map((result) => {
         const rsi = rsiResults.get(result.symbol);
+        const macd = macdResults.get(result.symbol);
         return {
           bollingerSignal: result,
           rsiSignal: rsi,
+          macdSignal: macd,
         };
       });
 
@@ -86,6 +91,7 @@ export default {
         cronTrigger: event.cron,
         bollingerSignalsFound: bollingerSignals.length,
         rsiSignalsFound: results.length,
+        macdSignalsFound: results.length,
       });
 
       await Promise.all(
@@ -101,6 +107,10 @@ export default {
             lowerBand: result.bollingerSignal.lowerBand,
             rsiValue: result.rsiSignal?.rsi ?? 0,
             rsiSignal: result.rsiSignal?.signal ?? 'NEUTRAL',
+            macdValue: result.macdSignal?.macd,
+            macdSignal: result.macdSignal?.signal,
+            macdHistogram: result.macdSignal?.histogram,
+            macdCrossover: result.macdSignal?.crossover,
           }),
         ),
       );
