@@ -43,6 +43,14 @@ export default {
       const latestPricesTask = alpacaClient.getLatestPrices(tickerSymbols);
       const [bars, latestPrices] = await Promise.all([barsTask, latestPricesTask]);
 
+      // filter bars that don't have at least 20 bars
+      for (const [symbol, barData] of bars.entries()) {
+        if (barData.length < 20) {
+          bars.delete(symbol);
+          console.log(`${symbol} has less than 20 bars, ignoring it`);
+        }
+      }
+
       // check bollinger bands
       const bollingerSignals = await evaluateBollingerSignals(
         bars,

@@ -12,6 +12,7 @@ interface AlpacaBarResponse {
       v: number; // volume
     }[]
   >;
+  next_page_token: string;
 }
 
 type AlpacaSnapshotResponse = Record<
@@ -49,31 +50,50 @@ export class AlpacaClient {
   async getBars(symbols: string[], days = 60) {
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const symbolsQuery = symbols.join(',');
-    const url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bars: ${response.status} ${response.statusText}`);
-    }
-
-    const data: AlpacaBarResponse = await response.json();
     const result = new Map<string, Bar[]>();
-
+    
+    // Initialize result for all requested symbols
     for (const symbol of symbols) {
-      const bars = data.bars[symbol] || [];
-      result.set(
-        symbol,
-        bars.map((bar) => ({
-          Timestamp: bar.t,
-          ClosePrice: bar.c,
-          Symbol: symbol,
-        })),
-      );
+      result.set(symbol, []);
     }
+
+    let pageToken: string | null = null;
+
+    do {
+      let url = `${this.baseUrl}/v2/stocks/bars?symbols=${symbolsQuery}&timeframe=1Day&start=${startDate}`;
+      if (pageToken) {
+        url += `&page_token=${pageToken}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch bars: ${response.status} ${response.statusText}`);
+      }
+
+      const data: AlpacaBarResponse = await response.json();
+
+      // The API might return bars for symbols we requested
+      // Iterate over the response keys to be safe, or the requested symbols
+      if (data.bars) {
+        for (const symbol of Object.keys(data.bars)) {
+          const bars = data.bars[symbol] || [];
+          const mappedBars = bars.map((bar) => ({
+            Timestamp: bar.t,
+            ClosePrice: bar.c,
+            Symbol: symbol,
+          }));
+
+          const existing = result.get(symbol) || [];
+          result.set(symbol, existing.concat(mappedBars));
+        }
+      }
+
+      pageToken = data.next_page_token;
+    } while (pageToken);
 
     return result;
   }
