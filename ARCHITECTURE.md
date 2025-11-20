@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **bollinger-checker** is a Cloudflare Worker that monitors stock prices using Bollinger Bands and RSI (Relative Strength Index) technical analysis. It runs on a scheduled basis to identify trading opportunities, sends notifications via Discord webhooks when stocks breach their Bollinger Band thresholds, and logs all execution runs and signals to a PostgreSQL database.
+The **bollinger-checker** is a Cloudflare Worker that monitors stock prices using Bollinger Bands, RSI (Relative Strength Index), and MACD (Moving Average Convergence Divergence) technical analysis. It runs on a scheduled basis to identify trading opportunities, sends notifications via Discord webhooks when stocks breach their Bollinger Band thresholds, and logs all execution runs and signals to a PostgreSQL database.
 
 ## System Architecture
 
@@ -59,15 +59,21 @@ sequenceDiagram
 
     Cron->>Worker: Scheduled execution (13:45 & 20:00 UTC)
 
-    Worker->>Alpaca: Get historical bars (35 days)
-    Alpaca-->>Worker: Historical price data
+    Worker->>Alpaca: Get historical bars (default: 60 days)
+    Alpaca-->>Worker: Historical price data (page 1) + next_page_token
+    loop Pagination
+        Worker->>Alpaca: Get next page (page_token)
+        Alpaca-->>Worker: Historical price data (page N) + next_page_token
+    end
+    Worker->>Worker: Consolidate all pages
 
     Worker->>Alpaca: Get latest prices
     Alpaca-->>Worker: Current market prices
 
     Worker->>Worker: Calculate Bollinger Bands
     Worker->>Worker: Calculate RSI signals
-    Worker->>Worker: Check band breaches & combine with RSI
+    Worker->>Worker: Calculate MACD signals
+    Worker->>Worker: Check band breaches & combine with RSI & MACD
 
     alt Stock breaches upper band
         Worker->>Yahoo: Get options chain
@@ -82,18 +88,20 @@ sequenceDiagram
     end
 
     Worker->>DB: Log run execution (status, duration, signals found)
-    Worker->>DB: Log individual signals (Bollinger + RSI data)
+    Worker->>DB: Log individual signals (Bollinger + RSI + MACD data)
 ```
 
 ## Technical Analysis Flow
 
 ```mermaid
 graph TD
-    START[Start Analysis] --> FETCH_BARS[Fetch 35-day Historical Bars]
+    START[Start Analysis] --> FETCH_BARS[Fetch Historical Bars<br/>Default: 60 days]
     FETCH_BARS --> CALC_BB[Calculate Bollinger Bands<br/>Period: 20 days]
     FETCH_BARS --> CALC_RSI[Calculate RSI<br/>Period: 14 days]
+    FETCH_BARS --> CALC_MACD[Calculate MACD<br/>Fast: 12, Slow: 26, Signal: 9]
     CALC_BB --> GET_PRICE[Get Latest Stock Price]
-    CALC_RSI --> COMBINE[Combine Bollinger & RSI Results]
+    CALC_RSI --> COMBINE[Combine Bollinger, RSI & MACD Results]
+    CALC_MACD --> COMBINE
     GET_PRICE --> CHECK_UPPER{Price near/above<br/>Upper Band?}
 
     CHECK_UPPER -->|Yes| FETCH_CALLS[Fetch Call Options]
@@ -123,28 +131,36 @@ graph TD
 
 - **Bollinger Bands**: 20-period moving average with 2 standard deviations (default)
 - **RSI (Relative Strength Index)**: 14-period RSI calculation with overbought (>70) and oversold (<30) thresholds
+- **MACD (Moving Average Convergence Divergence)**: Calculates MACD line, signal line, and histogram
+  - Fast EMA: 12 periods (default)
+  - Slow EMA: 26 periods (default)
+  - Signal EMA: 9 periods (default)
+  - Crossover Detection: Identifies BULLISH (MACD crosses above signal), BEARISH (MACD crosses below signal), or NEUTRAL states
+  - Requires minimum 35 bars of historical data (slowPeriod + signalPeriod)
 - **Threshold Detection**: 1% proximity to band edges for Bollinger signals (default)
 - **Signal Generation**: 
   - Upper band breach = Sell Calls
   - Lower band breach = Sell Puts
   - RSI signals: BUY (oversold), SELL (overbought), NEUTRAL
-- **Combined Analysis**: Results combine both Bollinger Band signals and RSI values for comprehensive trading insights
+  - MACD signals: BULLISH (upward momentum), BEARISH (downward momentum), NEUTRAL
+- **Combined Analysis**: Results combine Bollinger Band signals, RSI values, and MACD indicators for comprehensive trading insights
 
 ### 📊 Data Integration
 
-- **Alpaca API**: Historical price data (35 days) and real-time quotes
+- **Alpaca API**: Historical price data (60 days) and real-time quotes
 - **Yahoo Finance**: Options chain data for trading opportunities
 - **Multi-source reliability**: Combines different data providers
 
 ### 🔔 Smart Notifications
 
-- **Discord Integration**: Rich embed notifications with options tables and RSI data
+- **Discord Integration**: Rich embed notifications with options tables, RSI data, and MACD indicators
 - **Non-blocking Execution**: Discord notifications use `ctx.waitUntil()` to run asynchronously without blocking main execution flow
 - **Rate Limiting**: 500ms delay between webhook calls to prevent Discord API limits
 - **Error Handling**: Robust error handling with success/failure tracking for each notification
 - **Conditional Messaging**: Different messages for signals vs. no activity
 - **Options Data**: Top 10 out-of-the-money options with strike, price, bid, ask, and IV (default limit)
 - **RSI Display**: RSI values and signals (OVERBOUGHT/OVERSOLD/NEUTRAL) included in notifications
+- **MACD Display**: MACD values, signal line, histogram, and crossover direction (BULLISH/BEARISH/NEUTRAL) included in notifications
 
 ### 💾 Database Persistence
 
@@ -152,13 +168,14 @@ graph TD
   - Start/completion timestamps
   - Execution status (success/failed)
   - Duration metrics
-  - Ticker count and signal counts
+  - Ticker count and signal counts (Bollinger, RSI, MACD)
   - Cron trigger information
   - Environment identifier
 
 - **Signal Logging**: Individual trading signals are persisted with:
   - Bollinger Band data (signal type, current price, upper/lower bands)
   - RSI data (RSI value, signal type: BUY/SELL/NEUTRAL)
+  - MACD data (MACD value, signal line value, histogram, crossover direction: BULLISH/BEARISH/NEUTRAL)
   - Ticker symbol and detection timestamp
   - Link to parent execution run
 
@@ -189,6 +206,10 @@ graph TD
 - **RSI Period**: 14 days (default in `evaluateRsiSignals`)
 - **RSI Overbought Threshold**: 70 (default)
 - **RSI Oversold Threshold**: 30 (default)
+- **MACD Fast Period**: 12 (default in `evaluateMacdSignals`)
+- **MACD Slow Period**: 26 (default in `evaluateMacdSignals`)
+- **MACD Signal Period**: 9 (default in `evaluateMacdSignals`)
+- **MACD Minimum Bars**: 35 (slowPeriod + signalPeriod) required for calculation
 - **Options Limit**: 10 top out-of-the-money options (calls above price, puts below price).
 
 These defaults are encoded in code for simplicity and can be adjusted in future via configuration if needed.
@@ -214,4 +235,4 @@ Currently tracking **31 major stocks** including:
 - **Database**: PostgreSQL with Drizzle ORM
 - **External APIs**: Alpaca Markets, Yahoo Finance
 - **Notifications**: Discord Webhooks
-- **Technical Indicators**: trading-signals library (RSI, Bollinger Bands)
+- **Technical Indicators**: trading-signals library (RSI, Bollinger Bands, MACD)

@@ -25,6 +25,8 @@ Add env variables using a `.dev.vars` file with the following variables
 ALPACA_API_KEY
 ALPACA_API_SECRET
 DISCORD_WEBHOOK_URL
+DATABASE_URL
+ENVIRONMENT_NAME
 ```
 
 Starts up a local server for developing your Worker
