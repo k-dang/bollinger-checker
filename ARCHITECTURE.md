@@ -57,7 +57,7 @@ sequenceDiagram
     participant Discord as Discord Webhook
     participant DB as PostgreSQL Database
 
-    Cron->>Worker: Scheduled execution (13:45 & 20:00 UTC)
+    Cron->>Worker: Scheduled execution (14:45 & 21:00 UTC)
 
     Worker->>Alpaca: Get historical bars (default: 60 days)
     Alpaca-->>Worker: Historical price data (page 1) + next_page_token
@@ -124,7 +124,7 @@ graph TD
 
 ### 🕐 Scheduled Execution
 
-- Runs twice daily during market hours (13:45 UTC & 20:00 UTC on weekdays)
+- Runs twice daily during market hours (14:45 UTC & 21:00 UTC on weekdays)
 - Powered by Cloudflare Workers Cron Triggers
 
 ### 📈 Technical Analysis
@@ -216,15 +216,15 @@ These defaults are encoded in code for simplicity and can be adjusted in future 
 
 ### 🎯 Monitored Stocks
 
-Currently tracking **31 major stocks** including:
+Currently tracking **36 major stocks** including:
 
 - Tech giants: META, GOOGL, NVDA, MSFT, AAPL, AVGO
-- Growth stocks: SNOW, NET, CRWD, SHOP, COIN
-- Market leaders: TSLA, NFLX, ADBE, CRM, INTU
+- Growth stocks: SNOW, NET, CRWD, SHOP, COIN, PLTR
+- Market leaders: TSLA, NFLX, ADBE, CRM, INTU, LLY, COST
 - Consumer brands: DIS, NKE, LULU, PYPL
 - International: JD, MELI, CPNG
 - Semiconductors: AMD, LRCX
-- Other notable: ABNB, ADSK, TTD, ZM, XYZ
+- Other notable: ABNB, ADSK, TTD, ZM, XYZ, HOOD, MSTR
 
 ## Technology Stack
 
