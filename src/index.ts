@@ -88,40 +88,41 @@ export default {
       }
 
       console.log(`Trigger fired at ${event.cron}`);
-      const runExecutionId = await logRunExecution({
-        databaseUrl: env.DATABASE_URL,
-        startedAt: startTime,
-        completedAt: new Date(),
-        status: 'success',
-        environment: env.ENVIRONMENT_NAME,
-        durationMs: new Date().getTime() - startTime.getTime(),
-        tickersChecked: tickerSymbols.length,
-        cronTrigger: event.cron,
-        bollingerSignalsFound: bollingerSignals.length,
-        rsiSignalsFound: results.length,
-        macdSignalsFound: results.length,
-      });
-
-      await Promise.all(
-        results.map((result) =>
-          logRunSignal({
-            databaseUrl: env.DATABASE_URL,
-            runExecutionId: runExecutionId,
-            ticker: result.bollingerSignal.symbol,
-            detectedAt: new Date(),
-            bollingerSignal: result.bollingerSignal.type,
-            currentPrice: result.bollingerSignal.currentPrice,
-            upperBand: result.bollingerSignal.upperBand,
-            lowerBand: result.bollingerSignal.lowerBand,
-            rsiValue: result.rsiSignal?.rsi ?? 0,
-            rsiSignal: result.rsiSignal?.signal ?? 'NEUTRAL',
-            macdValue: result.macdSignal?.macd,
-            macdSignal: result.macdSignal?.signal,
-            macdHistogram: result.macdSignal?.histogram,
-            macdCrossover: result.macdSignal?.crossover,
-          }),
-        ),
-      );
+      if (env.ENVIRONMENT_NAME === 'prod') {
+        const runExecutionId = await logRunExecution({
+          databaseUrl: env.DATABASE_URL,
+          startedAt: startTime,
+          completedAt: new Date(),
+          status: 'success',
+          environment: env.ENVIRONMENT_NAME,
+          durationMs: new Date().getTime() - startTime.getTime(),
+          tickersChecked: tickerSymbols.length,
+          cronTrigger: event.cron,
+          bollingerSignalsFound: bollingerSignals.length,
+          rsiSignalsFound: results.length,
+          macdSignalsFound: results.length,
+        });
+        await Promise.all(
+          results.map((result) =>
+            logRunSignal({
+              databaseUrl: env.DATABASE_URL,
+              runExecutionId: runExecutionId,
+              ticker: result.bollingerSignal.symbol,
+              detectedAt: new Date(),
+              bollingerSignal: result.bollingerSignal.type,
+              currentPrice: result.bollingerSignal.currentPrice,
+              upperBand: result.bollingerSignal.upperBand,
+              lowerBand: result.bollingerSignal.lowerBand,
+              rsiValue: result.rsiSignal?.rsi ?? 0,
+              rsiSignal: result.rsiSignal?.signal ?? 'NEUTRAL',
+              macdValue: result.macdSignal?.macd,
+              macdSignal: result.macdSignal?.signal,
+              macdHistogram: result.macdSignal?.histogram,
+              macdCrossover: result.macdSignal?.crossover,
+            }),
+          ),
+        );
+      }
     } catch (err) {
       console.error('Scheduled event failed:', err);
     }
