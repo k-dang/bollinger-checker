@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@deno/shim-deno@0.18.2': patches/@deno__shim-deno@0.18.2.patch

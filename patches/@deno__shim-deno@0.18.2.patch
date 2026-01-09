@@ -1,0 +1,17 @@
+diff --git a/dist/deno/stable/variables/mainModule.js b/dist/deno/stable/variables/mainModule.js
+index e06a6be6c566e845a6712c74110e25a5ab98da7c..26da4a9f1f7ded48918fe7d26a461dad10ac0559 100644
+--- a/dist/deno/stable/variables/mainModule.js
++++ b/dist/deno/stable/variables/mainModule.js
+@@ -5,4 +5,11 @@ exports.mainModule = void 0;
+ ///<reference path="../lib.deno.d.ts" />
+ const path_1 = require("path");
+ const url_1 = require("url");
+-exports.mainModule = (0, url_1.pathToFileURL)((_b = (_a = require.main) === null || _a === void 0 ? void 0 : _a.filename) !== null && _b !== void 0 ? _b : (0, path_1.join)(__dirname, "$deno$repl.ts")).href;
++const _getDirname = () => {
++  try {
++    return __dirname;
++  } catch (e) {
++    return process.cwd();
++  }
++};
++exports.mainModule = (0, url_1.pathToFileURL)((_b = (_a = require.main) === null || _a === void 0 ? void 0 : _a.filename) !== null && _b !== void 0 ? _b : (0, path_1.join)(_getDirname(), "$deno$repl.ts")).href;
