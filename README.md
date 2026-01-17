@@ -71,11 +71,11 @@ pnpm cf-typegen
 
 ## Deployment
 
-Deployment is handled via cloudflare integration with github, so any merges into `main` will kick off a deployment to both `dev` & `prod` workers
+**Note:** This project uses `pnpm` patches (see `patches/` directory). Due to a known issue, the Cloudflare GitHub integration does not properly apply patches during deployment. Therefore, it's recommended to deploy locally using the CLI commands below instead of relying on the automatic GitHub integration.
 
-### Manual
+### Local CLI Deployment (Recommended)
 
-We can also deploy manually to cloudflare with the following commands
+Deploy manually to Cloudflare using the following commands
 
 Deploy to the `dev` environment
 
